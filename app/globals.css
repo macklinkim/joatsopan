@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-surface-paper: #f7f6f0;
+  --color-primary: #1a1a1a;
+}
+
+html,
+body {
+  background: var(--color-surface-paper);
+  color: var(--color-primary);
+}
+
+body {
+  font-family: var(--font-inter), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 수치 정렬용 고정폭 */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-jetbrains), monospace;
+}
