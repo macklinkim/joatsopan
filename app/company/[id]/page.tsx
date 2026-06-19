@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCompany, getMonthlyStats, nearbyCompanies, COMPANIES } from "@/lib/data";
+import { getCompany, getMonthlyStats, nearbyCompanies, HERO_IDS } from "@/lib/data";
 import { memberBand, turnoverLabel } from "@/lib/score";
 import { won, num, riskColor } from "@/lib/format";
 import RiskGauge from "@/components/RiskGauge";
@@ -10,8 +10,9 @@ import MetricCard from "@/components/MetricCard";
 import NearbyList from "@/components/NearbyList";
 import type { NearbyResult } from "@/lib/types";
 
+// 히어로 8개사만 미리 생성, 나머지(생성/실데이터)는 요청 시 동적 렌더
 export function generateStaticParams() {
-  return COMPANIES.map((c) => ({ id: c.id }));
+  return HERO_IDS.map((id) => ({ id }));
 }
 
 export default async function CompanyPage({

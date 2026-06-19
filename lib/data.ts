@@ -216,12 +216,114 @@ function buildCompany(s: Seed): Company {
     is_closed: !!s.isClosed,
     last_ym: LAST_YM,
     contrib,
-    comment: s.comment,
+    comment: s.comment || commentForScore(score, !!s.isClosed),
     industry_median: s.median,
   };
 }
 
-export const COMPANIES: Company[] = SEEDS.map(buildCompany);
+// 생성 회사용 점수 기반 한 줄 코멘트
+function commentForScore(score: number, closed: boolean): string {
+  if (closed) return "휴·폐업 신호가 보입니다. 입사 전 꼭 확인하세요.";
+  if (score >= 70) return "도망치세요. 신호가 강하게 옵니다.";
+  if (score >= 50) return "꽤 위험합니다. 신중히 보세요.";
+  if (score >= 30) return "평범한 편입니다. 그래도 확인은 하세요.";
+  if (score >= 10) return "나쁘지 않아 보입니다.";
+  return "여기는 좋소가 아닙니다. 안심하세요.";
+}
+
+// ── 대량 데이터(시연용 현실적 생성) ──────────────────────────────
+// 전국 실데이터(M9, Supabase) 적재 전까지 앱이 비어 보이지 않도록 결정적으로
+// 수백 개 사업장을 생성한다. 위험도는 score.ts 엔진으로 산출(forceScore 없음).
+const GEN_PREFIX = ["주식회사 ", "(주)", "", "", "", "주식회사 "];
+const GEN_STEM = [
+  "한빛", "미래", "대성", "서울", "한국", "정보", "디지털", "스마트", "코어", "네오",
+  "에이스", "우진", "동양", "삼우", "다온", "가온", "누리", "비전", "퍼스트", "메가",
+  "유니", "글로벌", "케이", "제이", "엠아이", "태일", "신영", "광명", "성진", "진영",
+  "우성", "대한", "세종", "한솔", "두레", "마루", "하나", "온누리", "청호", "대륙",
+  "유성", "삼정", "효성", "금강", "백두", "한라", "태평", "동방", "서린", "예성",
+];
+const GEN_TAIL = [
+  "소프트", "테크", "시스템", "솔루션", "데이터", "엔지니어링", "전자", "반도체", "정보통신",
+  "산업", "물산", "푸드", "식품", "바이오", "제약", "화학", "건설", "디자인", "미디어",
+  "컨설팅", "로지스", "모빌리티", "에너지", "네트웍스", "랩스", "이엔엠", "씨앤씨",
+];
+interface GenIndustry { code: string; name: string; median: number; }
+const GEN_INDUSTRY: GenIndustry[] = [
+  { code: "J5821", name: "응용 소프트웨어 개발 및 공급업", median: 4100 },
+  { code: "J6201", name: "컴퓨터 프로그래밍 서비스업", median: 4100 },
+  { code: "J6202", name: "컴퓨터시스템 통합 자문 및 구축 서비스업", median: 4300 },
+  { code: "C2611", name: "반도체 제조업", median: 5200 },
+  { code: "C2620", name: "전자부품 제조업", median: 4000 },
+  { code: "G4651", name: "컴퓨터 및 주변장치 소프트웨어 도매업", median: 3800 },
+  { code: "J5914", name: "미디어콘텐츠창작업", median: 3881 },
+  { code: "M7011", name: "기타 인문 및 사회과학 연구개발업", median: 4200 },
+  { code: "C2630", name: "기타 반도체 소자 제조업", median: 4800 },
+  { code: "C2710", name: "전기식 진단 및 요법 기기 제조업", median: 4300 },
+  { code: "G4633", name: "기타 가공식품 도매업", median: 3200 },
+  { code: "J5822", name: "기록매체 복제업", median: 3000 },
+  { code: "C2120", name: "의약품 제조업", median: 5000 },
+  { code: "F4111", name: "건물 건설업", median: 3600 },
+  { code: "H4920", name: "기타 도로화물 운송업", median: 2900 },
+];
+interface GenRegion { sigungu: string; dong: string; bdong: string; addr: string; }
+const GEN_REGION: GenRegion[] = [
+  { sigungu: "구로구", dong: "구로동", bdong: "1153010600", addr: "서울특별시 구로구 디지털로" },
+  { sigungu: "강남구", dong: "역삼동", bdong: "1168010100", addr: "서울특별시 강남구 테헤란로" },
+  { sigungu: "강남구", dong: "삼성동", bdong: "1168010500", addr: "서울특별시 강남구 영동대로" },
+  { sigungu: "금천구", dong: "가산동", bdong: "1154510100", addr: "서울특별시 금천구 가산디지털1로" },
+  { sigungu: "마포구", dong: "상암동", bdong: "1144012700", addr: "서울특별시 마포구 월드컵북로" },
+  { sigungu: "영등포구", dong: "여의도동", bdong: "1156011000", addr: "서울특별시 영등포구 의사당대로" },
+  { sigungu: "성동구", dong: "성수동2가", bdong: "1120011600", addr: "서울특별시 성동구 아차산로" },
+  { sigungu: "송파구", dong: "문정동", bdong: "1171010800", addr: "서울특별시 송파구 법원로" },
+  { sigungu: "종로구", dong: "종로3가", bdong: "1111017700", addr: "서울특별시 종로구 종로" },
+  { sigungu: "중구", dong: "을지로3가", bdong: "1114014000", addr: "서울특별시 중구 을지로" },
+  { sigungu: "서초구", dong: "서초동", bdong: "1165010800", addr: "서울특별시 서초구 강남대로" },
+  { sigungu: "강서구", dong: "마곡동", bdong: "1150010900", addr: "서울특별시 강서구 마곡중앙로" },
+];
+
+function genSeeds(n: number): Seed[] {
+  const rnd = mulberry32(20260620);
+  const pick = <T,>(arr: T[]) => arr[Math.floor(rnd() * arr.length)];
+  const seenName = new Set(SEEDS.map((s) => s.name));
+  const seenId = new Set(SEEDS.map((s) => s.id));
+  const out: Seed[] = [];
+  let guard = 0;
+  while (out.length < n && guard++ < n * 30) {
+    const name = `${pick(GEN_PREFIX)}${pick(GEN_STEM)}${pick(GEN_TAIL)}`;
+    if (seenName.has(name)) continue;
+    seenName.add(name);
+    const ind = pick(GEN_INDUSTRY);
+    const reg = pick(GEN_REGION);
+    const id = String(100000000000 + Math.floor(rnd() * 899999999999));
+    if (seenId.has(id)) continue;
+    seenId.add(id);
+    const members = Math.max(5, Math.round(5 + Math.pow(rnd(), 2.2) * 295));
+    const salary = Math.round(ind.median * (0.4 + rnd() * 0.85));
+    const turnover = Math.round(Math.pow(rnd(), 1.8) * 180);
+    out.push({
+      id,
+      name,
+      bizNo6: id.slice(0, 6),
+      industryCode: ind.code,
+      industry: ind.name,
+      sigungu: reg.sigungu,
+      bdong: reg.bdong,
+      dong: reg.dong,
+      addr: reg.addr,
+      members,
+      salary,
+      turnover,
+      median: ind.median,
+      isClosed: rnd() < 0.03,
+      comment: "",
+    });
+  }
+  return out;
+}
+
+// 직접 큐레이션한 8개사(부록 A) + 생성 500개사
+export const HERO_IDS = SEEDS.map((s) => s.id);
+export const COMPANIES: Company[] = [...SEEDS, ...genSeeds(500)].map(buildCompany);
 
 const COMPANY_BY_ID = new Map(COMPANIES.map((c) => [c.id, c]));
 export function getCompany(id: string): Company | undefined {
@@ -318,4 +420,54 @@ export function nearbyCompanies(id: string, limit = 10): NearbyResultSet {
     }
   }
   return { scope: "all", items: [] };
+}
+
+// ── 코너 페이지용 조회 ────────────────────────────────────────
+// 이달의 좋소: 위험도 높은 순(영업 중)
+export function topRiskCompanies(limit = 20): Company[] {
+  return COMPANIES.filter((c) => !c.is_closed)
+    .sort((a, b) => b.risk_score - a.risk_score || b.cur_turnover - a.cur_turnover)
+    .slice(0, limit);
+}
+
+// 별이 된 좋소: 휴·폐업 신호
+export function closedCompanies(limit = 40): Company[] {
+  return COMPANIES.filter((c) => c.is_closed).sort((a, b) => b.cur_members - a.cur_members).slice(0, limit);
+}
+
+// 좋소 시상식: 부문별 최고/최저
+export interface AwardWinner {
+  key: string;
+  title: string;
+  desc: string;
+  company: Company;
+  stat: string;
+}
+export function awards(): AwardWinner[] {
+  const open = COMPANIES.filter((c) => !c.is_closed);
+  const big = open.filter((c) => c.cur_members >= 10);
+  const top = (arr: Company[], cmp: (a: Company, b: Company) => number) => [...arr].sort(cmp)[0];
+  const turn = top(open, (a, b) => b.cur_turnover - a.cur_turnover);
+  const low = top(big, (a, b) => a.cur_salary - b.cur_salary);
+  const risk = top(open, (a, b) => b.risk_score - a.risk_score);
+  const safe = top(open, (a, b) => a.risk_score - b.risk_score);
+  const big2 = top(open, (a, b) => b.cur_members - a.cur_members);
+  return [
+    { key: "turnover", title: "🌀 회전문 대상", desc: "회전율이 가장 높은 곳", company: turn, stat: `회전율 ${turn.cur_turnover}%` },
+    { key: "lowpay", title: "🥶 박봉 대상", desc: "추정 연봉이 가장 낮은 곳(10인+)", company: low, stat: `${low.cur_salary.toLocaleString()}만원` },
+    { key: "risk", title: "🚨 올해의 좋소", desc: "위험도가 가장 높은 곳", company: risk, stat: `위험도 ${risk.risk_score}` },
+    { key: "safe", title: "🏆 안심 대상", desc: "위험도가 가장 낮은 곳", company: safe, stat: `위험도 ${safe.risk_score}` },
+    { key: "big", title: "🏢 대식구 대상", desc: "직원 수가 가장 많은 곳", company: big2, stat: `${big2.cur_members.toLocaleString()}명` },
+  ];
+}
+
+// 좋소 게임용 풀: 위험도 분포가 다양하게 섞이도록 결정적 셔플
+export function gamePool(n = 30): Company[] {
+  const rnd = mulberry32(424242);
+  const arr = COMPANIES.filter((c) => !c.is_closed).slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, n);
 }
