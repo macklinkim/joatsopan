@@ -91,10 +91,16 @@ function interner() {
 }
 const sidoI = interner(), sgI = interner(), dongI = interner();
 
+// 레거시 시도명 → 현행 명칭 통일(데이터 정합: 같은 지역이 둘로 갈리는 것 방지)
+const SIDO_ALIAS = {
+  "강원도": "강원특별자치도",
+  "전라북도": "전북특별자치도",
+  "제주도": "제주특별자치도",
+};
 // 지번주소 → 시도/시군구/동 (통합시: 도+OO시+OO구, 세종: 시군구 없음 대응)
 function parseRegion(addr) {
   const t = (addr || "").split(/\s+/).filter(Boolean);
-  const sido = t[0] || "";
+  const sido = SIDO_ALIAS[t[0]] || t[0] || "";
   if (sido.startsWith("세종")) return [sido, "", t[1] || ""]; // 세종시: 시군구 없음
   if (t[1] && t[2] && t[1].endsWith("시") && t[2].endsWith("구"))
     return [sido, `${t[1]} ${t[2]}`, t[3] || ""]; // 통합시: 성남시 분당구 …

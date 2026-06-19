@@ -46,6 +46,10 @@ export default async function CompanyPage({
   const monthlyLeaveRate = last && last.members ? Math.round((last.leaves / last.members) * 1000) / 10 : 0;
 
   const nearbyResult = nearbyCompanies(id, 10);
+  // 갈아탈 만한 곳: 같은 지역에서 더 주면서 위험은 같거나 낮은 곳
+  const better = nearbyResult.items
+    .filter((n) => n.cur_salary > c.cur_salary && n.risk_score <= c.risk_score)
+    .slice(0, 3);
   const nearby: NearbyResult[] = nearbyResult.items.map((n) => ({
     id: n.id,
     bizName: n.biz_name,
@@ -243,6 +247,24 @@ export default async function CompanyPage({
         <p className="mt-1 mb-4 text-sm text-on-surface-variant">
           {nearbyDesc} · 연봉 높은 순 (5인 이하 제외)
         </p>
+        {better.length > 0 && (
+          <div className="mb-5 rounded-lg bg-risk-safe/[0.07] p-4">
+            <p className="mb-2 text-sm font-semibold text-risk-safe">💡 갈아탈 만한 곳 — 더 주면서 덜 위험</p>
+            <ul className="flex flex-col gap-1.5">
+              {better.map((n) => (
+                <li key={n.id}>
+                  <Link href={`/company/${n.id}`} className="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-1 hover:bg-surface-white">
+                    <span className="truncate text-sm font-medium">{n.biz_name}</span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className="tnum text-xs font-semibold text-risk-safe">{(n.cur_salary / c.cur_salary).toFixed(1)}배</span>
+                      <span className="tnum text-sm font-semibold">{won(n.cur_salary)}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <NearbyList items={nearby} baseSalary={c.cur_salary} />
       </section>
 
