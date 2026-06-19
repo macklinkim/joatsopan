@@ -47,6 +47,10 @@ export default function SearchBox() {
   const go = (id: string) => router.push(`/company/${id}`);
 
   const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setOpen(false);
+      return;
+    }
     if (!open || !results.length) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -75,14 +79,20 @@ export default function SearchBox() {
           onKeyDown={onKey}
           placeholder="회사명 또는 사업자번호 검색 (예: 소프트)"
           aria-label="회사 검색"
+          role="combobox"
+          aria-expanded={open && results.length > 0}
+          aria-controls="search-listbox"
+          aria-autocomplete="list"
+          aria-activedescendant={active >= 0 ? `search-opt-${active}` : undefined}
           className="w-full bg-transparent text-base outline-none placeholder:text-outline"
         />
       </div>
       {open && results.length > 0 && (
-        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-lg border border-primary/10 bg-surface-white shadow-float">
+        <ul id="search-listbox" role="listbox" aria-label="검색 결과" className="absolute z-20 mt-2 w-full overflow-hidden rounded-lg border border-primary/10 bg-surface-white shadow-float">
           {results.map((r, i) => (
-            <li key={r.id}>
+            <li key={r.id} role="option" id={`search-opt-${i}`} aria-selected={active === i}>
               <button
+                tabIndex={-1}
                 onMouseEnter={() => setActive(i)}
                 onClick={() => go(r.id)}
                 className={`flex w-full items-center gap-2 px-5 py-3 text-left ${

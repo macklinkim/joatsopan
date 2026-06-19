@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCompany, getMonthlyStats, nearbyCompanies, HERO_IDS } from "@/lib/data";
+import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, HERO_IDS } from "@/lib/data";
 import { memberBand, turnoverLabel } from "@/lib/score";
 import { won, num, riskColor, riskTextColor } from "@/lib/format";
 import RiskGauge from "@/components/RiskGauge";
@@ -45,6 +45,7 @@ export default async function CompanyPage({
   }[nearbyResult.scope];
 
   const medianRatioPct = Math.round((c.cur_salary / c.industry_median) * 100);
+  const rrank = regionRank(id);
 
   return (
     <main className="mx-auto max-w-container px-5 py-8 md:px-12">
@@ -80,6 +81,25 @@ export default async function CompanyPage({
           </div>
         </div>
       </header>
+
+      {/* 지역 위험도 순위 */}
+      {rrank && (() => {
+        const dp = rrank.rank / rrank.total; // 1=가장 위험
+        const tag = dp <= 0.1 ? "위험 상위권" : dp <= 0.34 ? "위험한 편" : dp >= 0.66 ? "안전한 편" : "중간 수준";
+        return (
+          <div className="mt-4 flex items-center gap-3 rounded-lg border border-primary/[0.08] bg-surface-white px-5 py-4">
+            <span className="text-lg" aria-hidden>📍</span>
+            <p className="text-sm text-on-surface-variant">
+              <span className="font-semibold text-primary">{rrank.sigungu}</span>{" "}
+              <span className="tnum font-semibold text-primary">{rrank.total.toLocaleString()}곳</span> 중 위험도{" "}
+              <span className="tnum font-semibold" style={{ color: riskTextColor(c.risk_score) }}>
+                {rrank.rank.toLocaleString()}위
+              </span>{" "}
+              <span className="font-medium" style={{ color: riskTextColor(c.risk_score) }}>· {tag}</span>
+            </p>
+          </div>
+        );
+      })()}
 
       {/* 핵심 지표 4종 */}
       <h2 className="mt-8 mb-3 font-head text-xl font-semibold">핵심 지표</h2>

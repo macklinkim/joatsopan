@@ -193,6 +193,32 @@ export function nearbyCompanies(id: string, limit = 10): NearbyResultSet {
   return { scope: "all", items: [] };
 }
 
+// ── 지역 위험도 순위 (같은 시군구 내, 위험도 높을수록 상위) ──────
+export interface RegionRank {
+  sigungu: string; dong: string;
+  rank: number; total: number; percentile: number; // percentile=상위 P%
+}
+export function regionRank(id: string): RegionRank | null {
+  ensureIds();
+  const g = ID_MAP!.get(id);
+  if (g === undefined || g >= NA) return null; // 활성만
+  const myScore = A.score[g], mySg = A.sgIx[g], mySido = A.sidoIx[g];
+  let total = 0, higher = 0, tie = 0;
+  for (let j = 0; j < NA; j++) {
+    if (A.sgIx[j] === mySg && A.sidoIx[j] === mySido) {
+      total++;
+      if (A.score[j] > myScore) higher++;
+      else if (A.score[j] === myScore && j < g) tie++; // 동점은 인덱스로 안정화
+    }
+  }
+  if (total < 5) return null;
+  const rank = higher + tie + 1;
+  return {
+    sigungu: raw.sigungu[mySg], dong: raw.dong[A.dongIx[g]],
+    rank, total, percentile: Math.max(1, Math.round((rank / total) * 100)),
+  };
+}
+
 // ── 코너 페이지 (지연 계산·캐시) ───────────────────────────────
 let _topRisk: number[] | null = null;
 export function topRiskCompanies(limit = 20): Company[] {
