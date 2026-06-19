@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
+  { href: "/explore", label: "기업 탐색" },
   { href: "/monthly", label: "이달의 좋소" },
   { href: "/memorial", label: "별이 된 좋소" },
   { href: "/awards", label: "좋소 시상식" },

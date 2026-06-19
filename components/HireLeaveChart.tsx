@@ -104,6 +104,22 @@ export default function HireLeaveChart({ data }: { data: Row[] }) {
         {/* 툴팁 */}
         {active && <Tooltip x={active.x} y={active.y} label={active.label} color={active.color} W={W} />}
       </svg>
+      {/* 스크린리더용 데이터 표 */}
+      <table className="sr-only">
+        <caption>월별 입사·퇴사</caption>
+        <thead>
+          <tr><th>월</th><th>입사</th><th>퇴사</th></tr>
+        </thead>
+        <tbody>
+          {data.map((d) => (
+            <tr key={d.ym}>
+              <td>{ymLabel(d.ym)}</td>
+              <td>{d.hires.toLocaleString()}명</td>
+              <td>{d.leaves.toLocaleString()}명</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

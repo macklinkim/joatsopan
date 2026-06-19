@@ -135,6 +135,21 @@ export default function LineChart({
           />
         )}
       </svg>
+      {/* 스크린리더용 데이터 표 */}
+      <table className="sr-only">
+        <caption>월별 추이{unit ? ` (${unit})` : ""}</caption>
+        <thead>
+          <tr><th>월</th><th>값</th></tr>
+        </thead>
+        <tbody>
+          {data.map((d) => (
+            <tr key={d.ym}>
+              <td>{ymLabel(d.ym)}</td>
+              <td>{Math.round(d.value).toLocaleString()}{unit}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

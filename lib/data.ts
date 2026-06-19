@@ -193,6 +193,42 @@ export function nearbyCompanies(id: string, limit = 10): NearbyResultSet {
   return { scope: "all", items: [] };
 }
 
+// ── 탐색(필터) — 시도·위험등급·정렬 (원본에 없는 기능) ──────────
+export type Grade = "rare" | "normal" | "jotso";
+export type SortKey = "risk" | "salary" | "members";
+export interface ExploreFilter { sido?: string; grade?: Grade; sort?: SortKey; }
+
+let _sidoList: string[] | null = null;
+export function sidoList(): string[] {
+  if (_sidoList) return _sidoList;
+  const cnt = new Map<number, number>();
+  for (let i = 0; i < NA; i++) cnt.set(A.sidoIx[i], (cnt.get(A.sidoIx[i]) || 0) + 1);
+  _sidoList = [...cnt.entries()]
+    .filter(([ix, n]) => raw.sido[ix] && n >= 100)
+    .sort((a, b) => b[1] - a[1])
+    .map(([ix]) => raw.sido[ix]);
+  return _sidoList;
+}
+
+export function exploreCompanies(f: ExploreFilter, limit = 50): { items: Company[]; total: number } {
+  const idx: number[] = [];
+  for (let i = 0; i < NA; i++) {
+    if (f.sido && raw.sido[A.sidoIx[i]] !== f.sido) continue;
+    const sc = A.score[i];
+    if (f.grade === "rare" && !(sc < 20)) continue;
+    if (f.grade === "normal" && !(sc >= 20 && sc < 50)) continue;
+    if (f.grade === "jotso" && !(sc >= 50)) continue;
+    idx.push(i);
+  }
+  const total = idx.length;
+  const cmp =
+    f.sort === "salary" ? (a: number, b: number) => A.salary[b] - A.salary[a]
+    : f.sort === "members" ? (a: number, b: number) => A.members[b] - A.members[a]
+    : (a: number, b: number) => A.score[b] - A.score[a];
+  idx.sort(cmp);
+  return { items: idx.slice(0, limit).map(companyAt), total };
+}
+
 // ── 지역 위험도 순위 (같은 시군구 내, 위험도 높을수록 상위) ──────
 export interface RegionRank {
   sigungu: string; dong: string;
