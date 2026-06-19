@@ -60,11 +60,16 @@
 - /api 레이트리밋 미들웨어(인메모리) — 로컬 40/10s 동작 확인. ⚠️ **프로덕션 한계**: Vercel 다중 엣지 인스턴스로 카운터 분산 → 실효 약함. 진짜 방어는 Vercel KV/Upstash(공유 스토어) 필요(사용자 리소스).
 - 데드 /api/nearby 제거.
 
-### ⏳ 남은 것 (다음 회차)
-1. **레이트리밋 실효화**: Vercel KV/@upstash/ratelimit(공유 스토어) — 키 확보 시. (현재 인메모리는 best-effort)
-2. **제품 P1**: "그때 vs 지금"(시계열 합성 고지 선행 필수), 추천 2분화 고도화.
-3. 코드: 차트 textWidth/Tooltip 중복추출, eslint/prettier, data.ts(regionRank/ladder/explore) 테스트.
-4. OG 임의생성 남용 방어(레이트리밋 의존), 정정창구 안내 문구.
+### ✅ 추가 완료 (완성도 패스)
+- 시계열 합성 고지(차트에 "최근월 실측 기반 추정 곡선") — 정직성.
+- 차트 Tooltip/textWidth 공용화(chartTooltip.tsx), 중복 제거.
+- lib/data.test.ts 12종(총 24 통과), eslint(Next15 정렬·flat config) 도입·미사용 import 정리.
+
+### ⏳ 남은 것 (대부분 외부 리소스/저우선)
+1. **레이트리밋 실효화**: Vercel KV/Upstash 공유 스토어 필요(키) — 인메모리는 best-effort.
+2. **정정창구 안내** 문구(법적), OG 임의생성 남용 방어(레이트리밋 의존).
+3. **다개월 실시계열**: data.go.kr 과거월 파일 확보 시(현재 합성+고지).
+4. (선택) 추천 2분화 고도화, 즐겨찾기/비교, prettier.
 3. 성능: 사전 인덱스(시군구/업종/점수)로 상세 순회 ~96배·explore 정렬 상각, 바이너리(Int32Array) parse 절감, ISR revalidate 상향.
 4. a11y 잔여: MetricCard 기여배지 대비(4.06/3.69 미달), 배지 색+텍스트 병행, skip-link, 터치타깃 44px.
 5. 코드: 차트 textWidth/Tooltip 중복추출, /api/nearby 데드제거, data.ts 테스트, eslint.
