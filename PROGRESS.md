@@ -33,13 +33,17 @@
 - **기업 탐색 /explore**(원본 초과): 시도·위험등급·정렬 필터, 전수 스캔, 네비 추가.
 - 차트 sr-only 데이터 테이블(스크린리더 접근).
 
+### ✅ 추가 완료 (공유·견고화·백분위 회차들)
+- 공유 OG 이미지 카드(Pretendard 번들) + 회사 generateMetadata, twitter large image.
+- 점수 SSOT(scoreCore.mjs), 보안헤더, ISR(회사 1일), API try/catch+가드.
+- **업종 내 연봉 백분위**(2단 배너), ETL 완전중복 191건 제거.
+
 ### ⏳ 남은 것 (다음 회차)
-1. **공유 OG 카드**(app/company/[id]/opengraph-image): 회사명+점수 리치카드(한글 폰트 로드 주의) — 확산 기능.
-2. 점수 로직 SSOT: score.ts ↔ etl.mjs 복붙 → 공용 모듈.
-3. generateMetadata(회사별 title/desc) — 공유 텍스트 개선.
-4. ISR(revalidate)·보안헤더(next.config)·/api 레이트리밋·eslint/prettier.
-5. 다개월 실시계열(추가 월 CSV), id 중복 제거(ETL).
-6. 추가 차별화: 업종 비교, 연봉 백분위, 비교/즐겨찾기.
+1. **round3 10-에이전트 교차검증**(사용자 요구) — 누적 신규기능(OG·explore·백분위·SSOT·메타·지역순위) 회귀·정확성 점검. docs/review/round3-*.
+2. eslint/prettier 설치·설정, 실 레이트리밋(IP/토큰버킷).
+3. 차별화: 업종 평균 비교 카드, 비교(2곳)/즐겨찾기.
+4. 다개월 실시계열(data.go.kr 최신월만 제공 → 과거월 확보 가능 시).
+5. 검색 정규화(NFC/전각), 사전 인덱스(시군구/업종/점수)로 스캔비용 절감.
 2. **점수 로직 SSOT**(round2-08): score.ts ↔ scripts/etl.mjs 복붙 → lib/score.core.mjs 분리 양쪽 import.
 3. **참조 초과 기능**(round2-09): 회사상세 "그때 vs 지금" 서사, 추천 2분화+배수, 위험도 사다리, **지역 순위(OO구 N위/상위%)**, **공유 OG카드(app/og)**.
 4. 차별화: 필터검색(지역·업종·점수), 업종 비교, 연봉 백분위, 비교/즐겨찾기 → 전제로 사전 인덱스(시군구/업종/점수 버킷).
