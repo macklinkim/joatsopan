@@ -25,8 +25,12 @@
   검색 동명구분(지역 노출)+입력제한, 단정코멘트→추정톤+고지문 인접(법적), HERO_IDS/nameLc 지연화(콜드스타트),
   시계열 turnover 정합, SearchBox abort/res.ok, NavBar 모바일, vitest 점수테스트 12종(통과).
 
-### ⏳ 남은 것 (다음 회차 — round2 잔여 P1/P2)
-1. **접근성 잔여**(round2-06): 검색 APG combobox(role/aria-activedescendant/Escape), 차트 키보드(tabIndex+화살표 or sr-only 데이터테이블). globals.css에 sr-only 추가 필요.
+### ✅ 추가 완료 (기능+접근성 회차)
+- **지역 위험도 순위**(원본 초과): 시군구 내 N위/M곳 + 정성 라벨, 회사 상세에 표시.
+- **검색 ARIA combobox**(role/aria-expanded/controls/activedescendant·listbox/option·Escape), sr-only 유틸 추가.
+
+### ⏳ 남은 것 (다음 회차)
+1. **접근성 잔여**: 차트 키보드 접근(tabIndex+화살표 or sr-only 데이터테이블 + aria). (검색 combobox는 완료)
 2. **점수 로직 SSOT**(round2-08): score.ts ↔ scripts/etl.mjs 복붙 → lib/score.core.mjs 분리 양쪽 import.
 3. **참조 초과 기능**(round2-09): 회사상세 "그때 vs 지금" 서사, 추천 2분화+배수, 위험도 사다리, **지역 순위(OO구 N위/상위%)**, **공유 OG카드(app/og)**.
 4. 차별화: 필터검색(지역·업종·점수), 업종 비교, 연봉 백분위, 비교/즐겨찾기 → 전제로 사전 인덱스(시군구/업종/점수 버킷).
