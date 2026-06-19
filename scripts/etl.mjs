@@ -2,25 +2,15 @@
 // 사용: node --max-old-space-size=4096 scripts/etl.mjs [maxCount]
 // 입력: data/raw/nps.csv (115MB, 593k행)  출력: data/companies.json (컬럼형 압축)
 import fs from "node:fs";
+import { riskScore as coreRisk, turnover as turnoverPct, estSalary } from "../lib/scoreCore.mjs";
 
 const SRC = "data/raw/nps.csv";
 const OUT = "data/companies.json";
 const MAX = process.argv[2] ? parseInt(process.argv[2], 10) : Infinity;
 
-// ── 점수 엔진 (lib/score.ts와 동일 공식) ───────────────────────
-const estSalary = (notice, members) =>
-  members ? Math.round((notice / members / 0.09) * 12 / 10000) : 0;
-const turnoverPct = (hires, leaves, members) =>
-  members ? Math.round(((hires + leaves) / members) * 1000) / 10 : 0;
-function riskScore(members, salary, turnover, median, closed) {
-  const s1 = members >= 100 ? 0 : members >= 30 ? 8 : 16;
-  const ratio = median ? salary / median : 1;
-  const s2 = ratio >= 1 ? 0 : Math.round(35 * Math.min(1, 1 - ratio));
-  const s3 = Math.round(Math.max(0, Math.min(35, (turnover - 20) * 0.22)));
-  const s4 = closed ? 30 : 0;
-  return Math.max(0, Math.min(100, s1 + s2 + s3 + s4));
-}
-const labelOf = (s) => (s < 20 ? "희귀 중소" : s < 50 ? "보통" : "좋소 확정");
+// 점수 엔진은 lib/scoreCore.mjs(SSOT) 공유. ETL은 score 값만 필요.
+const riskScore = (members, salary, turnover, median, closed) =>
+  coreRisk({ members, est_salary: salary, turnover, is_closed: closed }, median).score;
 
 // ── 읽기 + EUC-KR 디코딩 ──────────────────────────────────────
 console.error("reading + decoding EUC-KR…");

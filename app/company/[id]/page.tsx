@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, HERO_IDS } from "@/lib/data";
@@ -10,9 +11,24 @@ import MetricCard from "@/components/MetricCard";
 import NearbyList from "@/components/NearbyList";
 import type { NearbyResult } from "@/lib/types";
 
-// 히어로 8개사만 미리 생성, 나머지(생성/실데이터)는 요청 시 동적 렌더
+// 히어로 8개사만 미리 생성, 나머지는 요청 시 동적 렌더 후 캐시(월간 데이터 → 1일 ISR)
 export function generateStaticParams() {
   return HERO_IDS.map((id) => ({ id }));
+}
+export const revalidate = 86400;
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const c = getCompany(id);
+  if (!c) return { title: "회사를 찾을 수 없습니다 — 좋소판별기" };
+  const title = `${c.biz_name} 위험도 ${c.risk_score} (${c.risk_label}) — 좋소판별기`;
+  const desc = `${c.sigungu} ${c.dong} · ${c.industry_name} · 직원 ${c.cur_members.toLocaleString()}명 · 추정 연봉 ${c.cur_salary.toLocaleString()}만원 · 회전율 ${c.cur_turnover}%. 공공데이터(국민연금) 기반 추정·참고용.`;
+  return {
+    title,
+    description: desc,
+    openGraph: { title, description: desc, type: "website" },
+    twitter: { card: "summary", title, description: desc },
+  };
 }
 
 export default async function CompanyPage({
