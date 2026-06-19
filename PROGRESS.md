@@ -29,8 +29,17 @@
 - **지역 위험도 순위**(원본 초과): 시군구 내 N위/M곳 + 정성 라벨, 회사 상세에 표시.
 - **검색 ARIA combobox**(role/aria-expanded/controls/activedescendant·listbox/option·Escape), sr-only 유틸 추가.
 
+### ✅ 추가 완료 (탐색+차트 a11y 회차)
+- **기업 탐색 /explore**(원본 초과): 시도·위험등급·정렬 필터, 전수 스캔, 네비 추가.
+- 차트 sr-only 데이터 테이블(스크린리더 접근).
+
 ### ⏳ 남은 것 (다음 회차)
-1. **접근성 잔여**: 차트 키보드 접근(tabIndex+화살표 or sr-only 데이터테이블 + aria). (검색 combobox는 완료)
+1. **공유 OG 카드**(app/company/[id]/opengraph-image): 회사명+점수 리치카드(한글 폰트 로드 주의) — 확산 기능.
+2. 점수 로직 SSOT: score.ts ↔ etl.mjs 복붙 → 공용 모듈.
+3. generateMetadata(회사별 title/desc) — 공유 텍스트 개선.
+4. ISR(revalidate)·보안헤더(next.config)·/api 레이트리밋·eslint/prettier.
+5. 다개월 실시계열(추가 월 CSV), id 중복 제거(ETL).
+6. 추가 차별화: 업종 비교, 연봉 백분위, 비교/즐겨찾기.
 2. **점수 로직 SSOT**(round2-08): score.ts ↔ scripts/etl.mjs 복붙 → lib/score.core.mjs 분리 양쪽 import.
 3. **참조 초과 기능**(round2-09): 회사상세 "그때 vs 지금" 서사, 추천 2분화+배수, 위험도 사다리, **지역 순위(OO구 N위/상위%)**, **공유 OG카드(app/og)**.
 4. 차별화: 필터검색(지역·업종·점수), 업종 비교, 연봉 백분위, 비교/즐겨찾기 → 전제로 사전 인덱스(시군구/업종/점수 버킷).
