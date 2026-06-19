@@ -170,6 +170,22 @@ export function searchCompanies(q: string, limit = 10): Company[] {
   return hits.slice(0, limit).map((g) => companyAt(g));
 }
 
+// ── 사전 인덱스 (지연 1회 빌드) — 시군구/법정동/업종별 활성 인덱스 목록 ──
+// 상세·주변·순위·백분위가 552k 전수 스캔 대신 해당 그룹만 순회(라운드3-04: ~96배 절감).
+let _idx: { bySg: Map<string, number[]>; byDong: Map<string, number[]>; byInd: Map<number, number[]> } | null = null;
+function indexes() {
+  if (_idx) return _idx;
+  const bySg = new Map<string, number[]>(), byDong = new Map<string, number[]>(), byInd = new Map<number, number[]>();
+  const push = <K,>(m: Map<K, number[]>, k: K, v: number) => { const a = m.get(k); if (a) a.push(v); else m.set(k, [v]); };
+  for (let i = 0; i < NA; i++) {
+    push(bySg, A.sidoIx[i] + "|" + A.sgIx[i], i);
+    push(byDong, A.bdong[i], i);
+    push(byInd, A.indIx[i], i);
+  }
+  _idx = { bySg, byDong, byInd };
+  return _idx;
+}
+
 // ── 주변 회사: 같은 법정동 → 시군구 → 업종 → 전체 ───────────────
 export type NearbyScope = "dong" | "sigungu" | "industry" | "all";
 export interface NearbyResultSet { scope: NearbyScope; items: Company[]; }
@@ -178,26 +194,25 @@ export function nearbyCompanies(id: string, limit = 10): NearbyResultSet {
   const g0 = ID_MAP!.get(id);
   if (g0 === undefined) return { scope: "all", items: [] };
   const { s, i } = setOf(g0);
-  const myBdong = s.bdong[i], mySg = s.sgIx[i], mySido = s.sidoIx[i], myInd = s.indIx[i];
-  const collect = (pred: (j: number) => boolean): number[] => {
-    const r: number[] = [];
-    for (let j = 0; j < NA; j++) if (j !== g0 && A.members[j] > 5 && pred(j)) r.push(j);
-    return r;
-  };
-  const tiers: { scope: NearbyScope; pred: (j: number) => boolean }[] = [
-    { scope: "dong", pred: (j) => A.bdong[j] === myBdong },
-    { scope: "sigungu", pred: (j) => A.sgIx[j] === mySg && A.sidoIx[j] === mySido },
-    { scope: "industry", pred: (j) => A.indIx[j] === myInd },
-    { scope: "all", pred: () => true },
+  const ix = indexes();
+  const elig = (pool: number[] | undefined): number[] =>
+    (pool ?? []).filter((j) => j !== g0 && A.members[j] > 5);
+  const tiers: { scope: NearbyScope; pool: number[] }[] = [
+    { scope: "dong", pool: elig(ix.byDong.get(s.bdong[i])) },
+    { scope: "sigungu", pool: elig(ix.bySg.get(s.sidoIx[i] + "|" + s.sgIx[i])) },
+    { scope: "industry", pool: elig(ix.byInd.get(s.indIx[i])) },
   ];
   for (const t of tiers) {
-    const pool = collect(t.pred);
-    if (pool.length) {
-      pool.sort((a, b) => A.salary[b] - A.salary[a]);
-      return { scope: t.scope, items: pool.slice(0, limit).map(companyAt) };
+    if (t.pool.length) {
+      t.pool.sort((a, b) => A.salary[b] - A.salary[a]);
+      return { scope: t.scope, items: t.pool.slice(0, limit).map(companyAt) };
     }
   }
-  return { scope: "all", items: [] };
+  // 전체 폴백(극히 드묾): 가입자수 상위에서 본인 제외
+  const all: number[] = [];
+  for (let j = 0; j < NA && all.length < limit * 3; j++) if (j !== g0 && A.members[j] > 5) all.push(j);
+  all.sort((a, b) => A.salary[b] - A.salary[a]);
+  return { scope: "all", items: all.slice(0, limit).map(companyAt) };
 }
 
 // ── 탐색(필터) — 시도·위험등급·정렬 (원본에 없는 기능) ──────────
@@ -246,14 +261,13 @@ export function regionRank(id: string): RegionRank | null {
   const g = ID_MAP!.get(id);
   if (g === undefined || g >= NA) return null; // 활성만
   const myScore = A.score[g], mySg = A.sgIx[g], mySido = A.sidoIx[g];
-  let total = 0, higher = 0, tie = 0;
-  for (let j = 0; j < NA; j++) {
-    if (A.sgIx[j] === mySg && A.sidoIx[j] === mySido) {
-      total++;
-      if (A.score[j] > myScore) higher++;
-      else if (A.score[j] === myScore && j < g) tie++; // 동점은 인덱스로 안정화
-    }
+  const group = indexes().bySg.get(mySido + "|" + mySg) ?? [];
+  let higher = 0, tie = 0;
+  for (const j of group) {
+    if (A.score[j] > myScore) higher++;
+    else if (A.score[j] === myScore && j < g) tie++; // 동점은 인덱스로 안정화
   }
+  const total = group.length;
   if (total < 5) return null;
   const rank = higher + tie + 1;
   return {
@@ -270,9 +284,10 @@ export function salaryPercentile(id: string): SalaryPctile | null {
   if (g === undefined || g >= NA) return null;
   const myInd = A.indIx[g], mySal = A.salary[g];
   if (mySal <= 0) return null;
+  const group = indexes().byInd.get(myInd) ?? [];
   let total = 0, higher = 0, tie = 0;
-  for (let j = 0; j < NA; j++) {
-    if (A.indIx[j] === myInd && A.salary[j] > 0) {
+  for (const j of group) {
+    if (A.salary[j] > 0) {
       total++;
       if (A.salary[j] > mySal) higher++;
       else if (A.salary[j] === mySal && j < g) tie++;
@@ -316,12 +331,13 @@ export function awards(): AwardWinner[] {
     if (bigG < 0 || A.members[i] > A.members[bigG]) bigG = i;
   }
   const w = (g: number) => companyAt(g);
+  // 라벨은 지표 기반 중립 표현(조롱 톤 완화). 모두 추정치.
   _awards = [
-    { key: "turnover", title: "🌀 회전문 대상", desc: "회전율이 가장 높은 곳(30인+)", company: w(turnG), stat: `회전율 ${A.turnover[turnG]}%` },
-    { key: "lowpay", title: "🥶 박봉 대상", desc: "추정 연봉이 가장 낮은 곳(30인+)", company: w(lowG), stat: `${A.salary[lowG].toLocaleString()}만원` },
-    { key: "risk", title: "🚨 올해의 좋소", desc: "위험도가 가장 높은 곳(30인+)", company: w(riskG), stat: `위험도 ${A.score[riskG]}` },
-    { key: "safe", title: "🏆 안심 대상", desc: "위험도가 가장 낮은 곳(30인+)", company: w(safeG), stat: `위험도 ${A.score[safeG]}` },
-    { key: "big", title: "🏢 대식구 대상", desc: "직원 수가 가장 많은 곳", company: w(bigG), stat: `${A.members[bigG].toLocaleString()}명` },
+    { key: "turnover", title: "🌀 회전율 최고", desc: "추정 회전율이 가장 높은 곳(30인+)", company: w(turnG), stat: `회전율 ${A.turnover[turnG]}%` },
+    { key: "lowpay", title: "💸 추정 연봉 최저", desc: "추정 평균연봉이 가장 낮은 곳(30인+)", company: w(lowG), stat: `${A.salary[lowG].toLocaleString()}만원` },
+    { key: "risk", title: "🚨 위험도 최고", desc: "추정 위험도가 가장 높은 곳(30인+)", company: w(riskG), stat: `위험도 ${A.score[riskG]}` },
+    { key: "safe", title: "🏆 위험도 최저", desc: "추정 위험도가 가장 낮은 곳(30인+)", company: w(safeG), stat: `위험도 ${A.score[safeG]}` },
+    { key: "big", title: "🏢 직원 수 최다", desc: "가입자 수가 가장 많은 곳", company: w(bigG), stat: `${A.members[bigG].toLocaleString()}명` },
   ];
   return _awards;
 }

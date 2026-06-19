@@ -24,8 +24,8 @@ export default function MetricCard({
           className="tnum inline-block rounded-full px-2 py-0.5 text-xs font-semibold"
           style={
             pos
-              ? { background: "rgba(216,54,42,0.10)", color: "#D8362A" }
-              : { background: "rgba(42,141,92,0.10)", color: "#2A8D5C" }
+              ? { background: "rgba(216,54,42,0.10)", color: "#C92B20" }
+              : { background: "rgba(42,141,92,0.10)", color: "#1F7A4D" }
           }
         >
           {pos ? `+${contrib}` : "0"}
