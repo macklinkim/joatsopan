@@ -65,11 +65,16 @@
 - 차트 Tooltip/textWidth 공용화(chartTooltip.tsx), 중복 제거.
 - lib/data.test.ts 12종(총 24 통과), eslint(Next15 정렬·flat config) 도입·미사용 import 정리.
 
+### ✅ 추가 완료 (투명성/법적 완성도)
+- /about(이용안내·데이터출처·추정방식·면책·정정안내) + 전역 Footer(고지+링크).
+- 다개월 실데이터 조사: data.go.kr는 최신월만 제공(fileDetailSn=2는 동월 JSON) → 합성+고지 유지 확정.
+
 ### ⏳ 남은 것 (대부분 외부 리소스/저우선)
-1. **레이트리밋 실효화**: Vercel KV/Upstash 공유 스토어 필요(키) — 인메모리는 best-effort.
-2. **정정창구 안내** 문구(법적), OG 임의생성 남용 방어(레이트리밋 의존).
-3. **다개월 실시계열**: data.go.kr 과거월 파일 확보 시(현재 합성+고지).
-4. (선택) 추천 2분화 고도화, 즐겨찾기/비교, prettier.
+1. **레이트리밋 실효화**: Vercel KV/Upstash(키) 필요 — 인메모리는 best-effort. (OG 남용 방어도 이에 의존)
+2. (선택) 추천 2분화 고도화, 즐겨찾기/비교 페이지, prettier, 시도 레거시명 통일.
+3. 다개월 실시계열: 과거월 파일 별도 확보 시(현재 경로 불가 확인).
+
+> 핵심 로드맵(데이터 전수·검색·상세·코너·탐색·공유·접근성·보안헤더·법적고지·성능인덱스·테스트·린트) 대부분 달성. 남은 건 외부 키 의존 또는 선택적 고도화.
 3. 성능: 사전 인덱스(시군구/업종/점수)로 상세 순회 ~96배·explore 정렬 상각, 바이너리(Int32Array) parse 절감, ISR revalidate 상향.
 4. a11y 잔여: MetricCard 기여배지 대비(4.06/3.69 미달), 배지 색+텍스트 병행, skip-link, 터치타깃 44px.
 5. 코드: 차트 textWidth/Tooltip 중복추출, /api/nearby 데드제거, data.ts 테스트, eslint.
