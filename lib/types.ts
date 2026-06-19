@@ -49,6 +49,8 @@ export interface SearchResult {
   bizNo: string;
   industry: string;
   members: number;
+  sigungu: string;
+  dong: string;
 }
 
 export interface NearbyResult {

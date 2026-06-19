@@ -1,4 +1,4 @@
-import { riskColor } from "@/lib/format";
+import { riskColor, riskTextColor } from "@/lib/format";
 
 function polar(cx: number, cy: number, r: number, valPct: number) {
   // 0 → 왼쪽(180°), 100 → 오른쪽(0°), 상단 반원
@@ -45,7 +45,7 @@ export default function RiskGauge({
         textAnchor="middle"
         style={{ fontFamily: "var(--font-jetbrains), monospace", fontWeight: 700 }}
         fontSize="40"
-        fill={riskColor(score)}
+        fill={riskTextColor(score)}
       >
         {score}
       </text>

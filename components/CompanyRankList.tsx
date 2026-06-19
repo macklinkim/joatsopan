@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Company } from "@/lib/types";
-import { riskColor } from "@/lib/format";
+import { riskColor, riskTextColor } from "@/lib/format";
 
 export default function CompanyRankList({
   items,
@@ -42,7 +42,7 @@ export default function CompanyRankList({
               {showRisk && (
                 <span
                   className="tnum w-8 shrink-0 rounded-full py-0.5 text-center text-xs font-semibold"
-                  style={{ background: `${riskColor(c.risk_score)}1a`, color: riskColor(c.risk_score) }}
+                  style={{ background: `${riskColor(c.risk_score)}1a`, color: riskTextColor(c.risk_score) }}
                 >
                   {c.risk_score}
                 </span>

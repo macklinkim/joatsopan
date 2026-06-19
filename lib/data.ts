@@ -29,13 +29,14 @@ const NCL = CL.name.length;
 // 전역 인덱스 g: [0,NA) 활성, [NA, NA+NCL) 휴폐업
 const setOf = (g: number) => (g < NA ? { s: A, i: g, closed: false } : { s: CL, i: g - NA, closed: true });
 
+// 점수 기반 한줄평 — 단정 대신 '추정' 톤(공공데이터 추정치, 참고용)
 function commentForScore(score: number, closed: boolean): string {
-  if (closed) return "휴·폐업 신호가 보입니다. 입사 전 꼭 확인하세요.";
-  if (score >= 70) return "도망치세요. 신호가 강하게 옵니다.";
-  if (score >= 50) return "꽤 위험합니다. 신중히 보세요.";
-  if (score >= 30) return "평범한 편입니다. 그래도 확인은 하세요.";
-  if (score >= 10) return "나쁘지 않아 보입니다.";
-  return "여기는 좋소가 아닙니다. 안심하세요.";
+  if (closed) return "최근 가입자 급감 등 휴·폐업 신호가 추정됩니다.";
+  if (score >= 70) return "위험 신호가 강하게 추정됩니다. 입사 전 꼼꼼히 확인하세요.";
+  if (score >= 50) return "다소 주의가 필요한 신호가 보입니다.";
+  if (score >= 30) return "평범한 편으로 추정됩니다.";
+  if (score >= 10) return "비교적 무난해 보입니다.";
+  return "위험 신호는 낮게 추정됩니다.";
 }
 
 // ── stable id (전역 인덱스별 1회 계산, 충돌 시 접미사) ───────────
@@ -57,6 +58,15 @@ function ensureIds() {
   }
 }
 function idAt(g: number): string { ensureIds(); return IDS![g]; }
+
+// 단건 base id(중복제거 전). 상위 인덱스는 충돌 없어 idAt와 일치 → ensureIds 미트리거.
+function baseId(g: number): string {
+  const { s, i } = setOf(g);
+  let h = 5381;
+  const str = s.name[i] + s.bizNo[i] + s.bdong[i];
+  for (let k = 0; k < str.length; k++) h = ((h << 5) + h + str.charCodeAt(k)) | 0;
+  return (h >>> 0).toString(36) + s.bizNo[i];
+}
 
 function companyAt(g: number): Company {
   const { s, i, closed } = setOf(g);
@@ -82,7 +92,8 @@ export function getCompany(id: string): Company | undefined {
   return g === undefined ? undefined : companyAt(g);
 }
 
-export const HERO_IDS: string[] = Array.from({ length: Math.min(8, NA) }, (_, g) => idAt(g));
+// 콜드스타트에 552k id 전수 생성을 강제하지 않도록 baseId 사용(상위 8개는 충돌 없음)
+export const HERO_IDS: string[] = Array.from({ length: Math.min(8, NA) }, (_, g) => baseId(g));
 
 // ── 월별 시계열 (지연 생성·캐시) ───────────────────────────────
 function mulberry32(seed: number) {
@@ -122,16 +133,23 @@ export function getMonthlyStats(id: string): MonthlyStat[] {
     return { company_id: c.id, ym, members, hires, leaves, notice_amt: Math.round((est_salary / 12) * 10000 * 0.09 * members), est_salary, turnover: calcTurnover(hires, leaves, members) };
   });
   const last = series[n - 1];
-  last.members = c.cur_members; last.est_salary = c.cur_salary;
+  last.members = c.cur_members;
+  last.est_salary = c.cur_salary;
+  last.turnover = c.cur_turnover; // 헤더 회전율과 일치
   STATS_CACHE.set(id, series);
   return series;
 }
 
 // ── 검색: 회사명 또는 사업자번호 부분일치 (활성 전수 스캔) ──────────
-const nameLc: string[] = A.name.map((s) => s.toLowerCase());
+let _nameLc: string[] | null = null; // 지연 생성(콜드스타트 절감)
+function nameLcArr(): string[] {
+  if (!_nameLc) _nameLc = A.name.map((s) => s.toLowerCase());
+  return _nameLc;
+}
 export function searchCompanies(q: string, limit = 10): Company[] {
   const norm = q.trim().toLowerCase();
   if (!norm) return [];
+  const nameLc = nameLcArr();
   const digits = norm.replace(/\D/g, "");
   const byDigit = digits.length >= 3;
   const hits: number[] = [];

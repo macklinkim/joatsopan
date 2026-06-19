@@ -97,6 +97,16 @@ function interner() {
 }
 const sidoI = interner(), sgI = interner(), dongI = interner();
 
+// 지번주소 → 시도/시군구/동 (통합시: 도+OO시+OO구, 세종: 시군구 없음 대응)
+function parseRegion(addr) {
+  const t = (addr || "").split(/\s+/).filter(Boolean);
+  const sido = t[0] || "";
+  if (sido.startsWith("세종")) return [sido, "", t[1] || ""]; // 세종시: 시군구 없음
+  if (t[1] && t[2] && t[1].endsWith("시") && t[2].endsWith("구"))
+    return [sido, `${t[1]} ${t[2]}`, t[3] || ""]; // 통합시: 성남시 분당구 …
+  return [sido, t[1] || "", t[2] || ""];
+}
+
 // 압축 컬럼: id·indName·indCode 제거(인터닝/런타임 재계산), score만 보관(랭킹용)
 function build(list, closed) {
   const cols = { bizNo: [], name: [], sidoIx: [], sgIx: [], dongIx: [], bdong: [], indIx: [], members: [], salary: [], turnover: [], score: [] };
@@ -104,12 +114,12 @@ function build(list, closed) {
     const med = indMedian.get(r.indCode) || allMedian;
     const turnover = turnoverPct(r.hires, r.leaves, r.members);
     const score = riskScore(r.members, r.salary, turnover, med, closed);
-    const parts = (r.jibun || "").split(/\s+/);
+    const [psido, psg, pdong] = parseRegion(r.jibun);
     cols.bizNo.push(r.bizNo);
     cols.name.push(r.name);
-    cols.sidoIx.push(sidoI.ix(parts[0] || ""));
-    cols.sgIx.push(sgI.ix(parts[1] || ""));
-    cols.dongIx.push(dongI.ix(parts[2] || ""));
+    cols.sidoIx.push(sidoI.ix(psido));
+    cols.sgIx.push(sgI.ix(psg));
+    cols.dongIx.push(dongI.ix(pdong));
     cols.bdong.push(r.bdong);
     cols.indIx.push(indIx(r.indCode, r.indName));
     cols.members.push(r.members);

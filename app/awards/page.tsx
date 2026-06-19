@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { awards } from "@/lib/data";
-import { riskColor } from "@/lib/format";
+import { riskColor, riskTextColor } from "@/lib/format";
 
 export const metadata = { title: "좋소 시상식 — 좋소판별기" };
 
@@ -23,7 +23,7 @@ export default function AwardsPage() {
               <h2 className="font-head text-lg font-semibold">{w.title}</h2>
               <span
                 className="tnum rounded-full px-2 py-0.5 text-xs font-semibold"
-                style={{ background: `${riskColor(w.company.risk_score)}1a`, color: riskColor(w.company.risk_score) }}
+                style={{ background: `${riskColor(w.company.risk_score)}1a`, color: riskTextColor(w.company.risk_score) }}
               >
                 {w.company.risk_score}
               </span>

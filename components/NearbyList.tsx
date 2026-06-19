@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { NearbyResult } from "@/lib/types";
-import { won, riskColor } from "@/lib/format";
+import { won, riskColor, riskTextColor } from "@/lib/format";
 
 export default function NearbyList({ items }: { items: NearbyResult[] }) {
   if (!items.length) {
@@ -27,7 +27,7 @@ export default function NearbyList({ items }: { items: NearbyResult[] }) {
             <span className="tnum shrink-0 text-sm font-semibold">{won(c.salary)}</span>
             <span
               className="tnum w-8 shrink-0 rounded-full py-0.5 text-center text-xs font-semibold"
-              style={{ background: `${riskColor(c.riskScore)}1a`, color: riskColor(c.riskScore) }}
+              style={{ background: `${riskColor(c.riskScore)}1a`, color: riskTextColor(c.riskScore) }}
             >
               {c.riskScore}
             </span>

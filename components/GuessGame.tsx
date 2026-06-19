@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Company } from "@/lib/types";
-import { won, riskColor } from "@/lib/format";
+import { won, riskColor, riskTextColor } from "@/lib/format";
 
 export default function GuessGame({ data }: { data: Company[] }) {
   const [i, setI] = useState(0);
@@ -115,7 +115,7 @@ export default function GuessGame({ data }: { data: Company[] }) {
               <p className="text-sm font-semibold" style={{ color: lastHit ? "#2A8D5C" : "#D8362A" }}>
                 {lastHit ? "정답! 🎯" : "땡! ❌"}
               </p>
-              <p className="mt-1 tnum text-3xl font-bold" style={{ color: riskColor(c.risk_score) }}>
+              <p className="mt-1 tnum text-3xl font-bold" style={{ color: riskTextColor(c.risk_score) }}>
                 {c.risk_score} <span className="text-base font-medium">{c.risk_label}</span>
               </p>
             </div>

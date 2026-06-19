@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompany, getMonthlyStats, nearbyCompanies, HERO_IDS } from "@/lib/data";
 import { memberBand, turnoverLabel } from "@/lib/score";
-import { won, num, riskColor } from "@/lib/format";
+import { won, num, riskColor, riskTextColor } from "@/lib/format";
 import RiskGauge from "@/components/RiskGauge";
 import LineChart from "@/components/LineChart";
 import HireLeaveChart from "@/components/HireLeaveChart";
@@ -58,7 +58,7 @@ export default async function CompanyPage({
           <div>
             <span
               className="tnum inline-block rounded-full px-2.5 py-1 text-xs font-semibold"
-              style={{ background: `${riskColor(c.risk_score)}1a`, color: riskColor(c.risk_score) }}
+              style={{ background: `${riskColor(c.risk_score)}1a`, color: riskTextColor(c.risk_score) }}
             >
               {c.risk_label}
             </span>
@@ -68,8 +68,11 @@ export default async function CompanyPage({
             <p className="mt-2 text-sm text-on-surface-variant">
               {c.industry_name} · 사업자 {c.biz_no6} · {c.sido} {c.sigungu} {c.dong}
             </p>
-            <p className="mt-4 font-head text-lg font-medium" style={{ color: riskColor(c.risk_score) }}>
+            <p className="mt-4 font-head text-lg font-medium" style={{ color: riskTextColor(c.risk_score) }}>
               “{c.comment}”
+            </p>
+            <p className="mt-1.5 text-xs text-outline">
+              공공데이터(국민연금) 기반 추정치이며 참고용입니다. 사실과 다를 수 있습니다.
             </p>
           </div>
           <div className="flex justify-center">

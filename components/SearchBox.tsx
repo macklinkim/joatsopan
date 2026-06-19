@@ -13,22 +13,27 @@ export default function SearchBox() {
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!q.trim()) {
+      setResults([]);
+      return;
+    }
+    const ac = new AbortController();
     const id = setTimeout(async () => {
-      if (!q.trim()) {
-        setResults([]);
-        return;
-      }
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: ac.signal });
+        if (!res.ok) throw new Error(`search ${res.status}`);
         const json = await res.json();
         setResults(json.results ?? []);
         setOpen(true);
         setActive(-1);
-      } catch {
-        setResults([]);
+      } catch (e) {
+        if ((e as Error)?.name !== "AbortError") setResults([]);
       }
     }, 180);
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      ac.abort(); // 직전 요청 취소 → stale 응답 덮어쓰기 방지
+    };
   }, [q]);
 
   useEffect(() => {
@@ -80,12 +85,19 @@ export default function SearchBox() {
               <button
                 onMouseEnter={() => setActive(i)}
                 onClick={() => go(r.id)}
-                className={`flex w-full items-baseline gap-2 px-5 py-3 text-left ${
+                className={`flex w-full items-center gap-2 px-5 py-3 text-left ${
                   active === i ? "bg-surface-paper" : ""
                 }`}
               >
-                <span className="shrink-0 font-medium">{r.bizName}</span>
-                <span className="min-w-0 flex-1 truncate text-xs text-on-surface-variant">{r.industry}</span>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="truncate">
+                    <span className="font-medium">{r.bizName}</span>
+                    <span className="ml-2 text-xs text-on-surface-variant">{r.industry}</span>
+                  </span>
+                  <span className="truncate text-xs text-outline">
+                    {[r.sigungu, r.dong].filter(Boolean).join(" ") || "지역 미상"}
+                  </span>
+                </span>
                 <span className="tnum shrink-0 text-xs text-outline">{r.members.toLocaleString()}명</span>
               </button>
             </li>

@@ -14,11 +14,11 @@ export default function NavBar() {
   const pathname = usePathname();
   return (
     <header className="sticky top-0 z-30 border-b border-primary/[0.07] bg-surface-paper/85 backdrop-blur">
-      <nav className="mx-auto flex max-w-container items-center justify-between gap-4 px-5 py-3 md:px-12">
-        <Link href="/" className="font-head text-lg font-bold tracking-[-0.02em]">
+      <nav className="mx-auto flex max-w-container flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 md:px-12">
+        <Link href="/" className="shrink-0 font-head text-lg font-bold tracking-[-0.02em]">
           좋소판별기<span className="text-risk-high">.</span>
         </Link>
-        <ul className="flex items-center gap-1 text-sm sm:gap-2">
+        <ul className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 text-sm sm:gap-2">
           {LINKS.map((l) => {
             const active = pathname === l.href;
             return (
