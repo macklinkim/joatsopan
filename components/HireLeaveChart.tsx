@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ymLabel } from "@/lib/format";
 import { useChartWidth } from "./useChartWidth";
+import { ChartTooltip } from "./chartTooltip";
 
 interface Row {
   ym: string;
@@ -102,7 +103,7 @@ export default function HireLeaveChart({ data }: { data: Row[] }) {
           <text x={pad.l + 65} y={14} fontSize="11" fill="#444748">퇴사</text>
         </g>
         {/* 툴팁 */}
-        {active && <Tooltip x={active.x} y={active.y} label={active.label} color={active.color} W={W} />}
+        {active && <ChartTooltip x={active.x} y={active.y} label={active.label} color={active.color} W={W} dy={8} />}
       </svg>
       {/* 스크린리더용 데이터 표 */}
       <table className="sr-only">
@@ -121,26 +122,5 @@ export default function HireLeaveChart({ data }: { data: Row[] }) {
         </tbody>
       </table>
     </div>
-  );
-}
-
-// 한글(CJK)은 폭이 넓으므로 글자별로 가중치를 줘서 글상자 너비를 추정.
-function textWidth(s: string) {
-  return Array.from(s).reduce((w, ch) => w + (ch.charCodeAt(0) > 0x2e80 ? 13 : 7.4), 0);
-}
-
-function Tooltip({ x, y, label, color, W }: { x: number; y: number; label: string; color: string; W: number }) {
-  const w = textWidth(label) + 28;
-  const h = 26;
-  const tx = Math.max(4, Math.min(W - w - 4, x - w / 2));
-  const ty = Math.max(2, y - h - 8);
-  return (
-    <g pointerEvents="none">
-      <rect x={tx} y={ty} width={w} height={h} rx="6" fill="#1A1A1A" />
-      <circle cx={tx + 11} cy={ty + h / 2} r="4" fill={color} />
-      <text x={tx + 20} y={ty + h / 2 + 4.5} fontSize="12.5" fill="#fff" className="tnum">
-        {label}
-      </text>
-    </g>
   );
 }

@@ -1,4 +1,4 @@
-import { riskColor, riskTextColor } from "@/lib/format";
+import { riskTextColor } from "@/lib/format";
 
 function polar(cx: number, cy: number, r: number, valPct: number) {
   // 0 → 왼쪽(180°), 100 → 오른쪽(0°), 상단 반원

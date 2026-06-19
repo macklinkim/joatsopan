@@ -171,7 +171,11 @@ export default async function CompanyPage({
       </div>
 
       {/* 차트 3종 */}
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
+      <div className="mt-8 mb-3 flex items-baseline justify-between">
+        <h2 className="font-head text-xl font-semibold">추이</h2>
+        <span className="text-xs text-outline">월별 추이는 최근월({DATA_YM}) 실측 기반 추정 곡선</span>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
         <section className="rounded-lg border border-primary/[0.08] bg-surface-white p-5">
           <h3 className="mb-2 font-head text-base font-medium">직원 수 추이</h3>
           <LineChart data={stats.map((s) => ({ ym: s.ym, value: s.members }))} color="#1A1A1A" unit="명" />
