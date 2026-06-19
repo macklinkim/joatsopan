@@ -3,7 +3,8 @@ const nextConfig = {
   // 실데이터 JSON(약 44MB)을 서버리스 번들에 포함시켜 런타임 fs 로드가 가능하도록.
   outputFileTracingIncludes: {
     "/**": ["./data/companies.json"],
-    "/company/[id]/opengraph-image": ["./assets/Pretendard-Bold.otf"],
+    "/company/[id]": ["./data/companies.json", "./assets/Pretendard-Bold.otf"],
+    "/company/[id]/opengraph-image": ["./data/companies.json", "./assets/Pretendard-Bold.otf"],
   },
   async headers() {
     return [

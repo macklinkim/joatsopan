@@ -40,6 +40,7 @@ export default async function CompanyPage({
   const c = getCompany(id);
   if (!c) notFound();
 
+  try {
   const stats = getMonthlyStats(id);
   const last = stats[stats.length - 1];
   const monthlyLeaveRate = last && last.members ? Math.round((last.leaves / last.members) * 1000) / 10 : 0;
@@ -203,4 +204,10 @@ export default async function CompanyPage({
       </footer>
     </main>
   );
+  } catch (e) {
+    const digest = (e as { digest?: string })?.digest;
+    if (typeof digest === "string" && digest.startsWith("NEXT")) throw e; // notFound 등은 그대로
+    console.error("COMPANY_RENDER_ERR id=", id, e instanceof Error ? e.stack : e);
+    throw e;
+  }
 }

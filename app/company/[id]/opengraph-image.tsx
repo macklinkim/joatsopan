@@ -9,7 +9,11 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "좋소판별기 회사 위험도 카드";
 
-const fontData = fs.readFileSync(path.join(process.cwd(), "assets/Pretendard-Bold.otf"));
+let _font: Buffer | null = null;
+function font(): Buffer {
+  if (!_font) _font = fs.readFileSync(path.join(process.cwd(), "assets/Pretendard-Bold.otf"));
+  return _font;
+}
 
 export default async function OgImage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -50,6 +54,6 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
         </div>
       </div>
     ),
-    { ...size, fonts: [{ name: "Pretendard", data: fontData, style: "normal", weight: 700 }] }
+    { ...size, fonts: [{ name: "Pretendard", data: font(), style: "normal", weight: 700 }] }
   );
 }
