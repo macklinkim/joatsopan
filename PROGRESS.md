@@ -1,33 +1,31 @@
 # PROGRESS — 자율 구현 루프 로그
 
-> 작업계획서.md(M1~M9) · DESIGN.md(SSOT) · 8장 화면 기준. 매 회차 [완료/남은 것/결정·가정] 갱신.
+> 좋소판별기 클론. 10분 cron 루프(f580fbfc)로 계속 구축. 매 회차 [완료/남은 것/다음] 갱신.
+> 참조: jotso.net (전국 국민연금 사업장 전체). 점검·로드맵: docs/review/SUMMARY.md.
 
-## 회차 1 (2026-06-18)
+## 현재 상태 (2026-06-19, 실데이터 적재 회차)
 
-### ✅ 완료한 것
-- 프로젝트 스캐폴드: Next.js 15(App Router) + React 19 + TypeScript + Tailwind v3 수동 구성 (create-next-app은 비-빈 디렉터리 충돌 → 수동).
-- **DESIGN.md 토큰 → Tailwind 테마**(`tailwind.config.ts`): risk-high/warning/safe, surface-paper/white, primary, outline. 폰트 3종(Hanken Grotesk/Inter/JetBrains Mono) `next/font/google`.
-- **데이터 레이어**(`lib/`): 타입, 점수엔진(§9 그대로), 목업 데이터(부록 A 실측값 + 구로동 소프트웨어 클러스터), 결정적 시계열 생성기(14개월, 하이드레이션 안전).
-- **점수 재현**: 샤이닝라이언 78(+8/+35/+35/0), 맑은소프트 8, 아나패스 0 — 실측 채취값으로 고정(forceScore). 엠피테크 회전율 170%.
-- **API**: `/api/search?q=`(회사명 부분일치·members 내림차순), `/api/nearby?id=`(동 단위·연봉순·5인 이하 제외·휴폐업/본인 제외).
-- **화면**: 홈 `/`(검색창+자동완성, 키보드 탐색), 회사 상세 `/company/[id]`(헤더+위험게이지 SVG, 핵심지표 4종 카드, 직원수/연봉/입퇴사 SVG 차트 3종, 주변추천 리스트).
-- 검증/고지 문구("추정치·참고용") 양 화면에 배치.
+### ✅ 완료
+- **실데이터 라이브**: 국민연금 '가입 사업장 내역' CSV(EUC-KR, 115MB, 593k행) → `scripts/etl.mjs`로
+  점수계산·업종중앙값·지역파싱 → `data/companies.json`(8MB, 활성 5만 + 휴폐업 150).
+  전국 활성 **552,878곳** 중 층화표본 5만(대형30% + 전규모 균등표본).
+- **데이터레이어 교체**(`lib/data.ts`): 합성생성기 제거. 실데이터 런타임 fs 로드, 점수·기여도 엔진 재계산,
+  시계열 지연생성+캐시, 검색=회사명+사업자번호.
+- 코너 페이지(이달의 좋소/별이 된 좋소/시상식/게임) 실데이터 연동, 전역 네비.
+- 홈: 기준월·전국 사업장수 노출.
+- **프로덕션 배포 + 검증**: https://jotsopan.vercel.app (실검색 동작, HTTP 200 공개).
+- 빌드: 회사상세 히어로 8 SSG + 나머지 동적. `outputFileTracingIncludes`로 JSON 번들 포함. `.vercelignore`로 raw CSV 제외.
 
-### ✅ 검증 완료 (DoD — 실제 브라우저 확인)
-- dev 서버 기동 OK (`npm run dev`, http://localhost:3000, Ready 1.8s).
-- 홈 `/` 검색창 렌더 + `/api/search?q=소프트` → 4건(members 내림차순) OK. (`home.png`)
-- 상세 `/company/shininglion` → 좋소확정/78 게이지 + 핵심지표 4종(49명+8 / 621만원·중앙값16%+35 / 192%+35 / 정상0) + 차트 3종 = **Page_text_export.txt와 일치**. (`company-shininglion.png`)
-- 상세 `/company/malgunsoft` → 주변추천 채워짐: 구로데이터5,600 > 좋은소프트4,800 > 야근소프트3,100 > 엠피테크2,900 (연봉순, **새벽소프트 3인·본인 제외 ✓**). (`company-malgunsoft.png`)
-- 콘솔 에러 0 (favicon 404는 `app/icon.svg` 추가로 해결).
-- **→ M1~M8 + DoD 충족. 5분 루프 종료(cron a27063fa 취소).**
-
-### ⏳ 남은 것 (DoD 외 후속 — 별도 작업)
-- M9: 실제 공공데이터 CSV ETL + Supabase 적재 (현재 인메모리 목업). 데이터 접근 함수가 `lib/data.ts`에 격리돼 있어 Supabase 쿼리로 교체만 하면 됨.
-- Vercel 외부 배포.
+### ⏳ 남은 것 (다음 회차 우선순위)
+1. **전량 552k 적재** — 현재 5만 표본. Supabase(MCP 인증 후 적재) 또는 패킹 포맷으로 전수. ("모든 데이터" 목표)
+2. **다개월 실시계열** — 현재 1개월 스냅샷 → 합성 시계열. 추가 월 CSV 적재해 진짜 추이로.
+3. docs/review/SUMMARY.md P1: 접근성(검색 ARIA combobox, 노랑 대비, 차트 키보드), vitest 점수엔진 테스트, eslint 설치.
+4. **10회+ sub agent 교차검증** (사용자 요구) — 실데이터 반영 후 재실행, 회귀 점검.
+5. 참조 누락기능: 데이터 기준월 배지(완료), "그때 vs 지금", 지역 순위, 공유 OG.
+6. 휴폐업(별이 된 좋소): 현재 status=2 150곳. 다개월로 '급감 신호' 정교화.
 
 ### 🧭 결정·가정
-- **목업 우선 전략**: 공공데이터 CSV/Supabase 외부 의존으로 막히지 않도록, 부록 A 실측값 기반 인메모리 목업으로 전 화면을 먼저 띄운다. 데이터 접근 함수(`searchCompanies/nearbyCompanies/getMonthlyStats`)를 추상화해 두어 후속 회차에서 Supabase로 교체만 하면 됨.
-- **위험도**: ETL 사전계산 저장 아키텍처대로, 목업에 risk_score/contrib를 미리 박음. 그 외 회사는 score.ts 엔진으로 계산.
-- **주변추천 매칭**: 진짜 좌표 거리 대신 계획서대로 법정동(bdong_code) 동일성 = "주변". 동 결과<3이면 같은 시군구로 폴백.
-- **차트**: 외부 차트 라이브러리 없이 SSR SVG 직접 생성(계획서 §3 차트=서버생성 SVG).
-- 포트 3000.
+- 5만 표본은 인메모리/깃/번들 안전선(8MB JSON). 전량은 DB 필요 → Supabase가 정석(키 확보 시).
+- 점수: forceScore 폐기, 전 회사 score.ts 엔진 산출. 업종중앙값은 전국 활성 전체에서 계산.
+- id: name+bizNo+법정동 해시(stable). 사업자번호는 공공데이터가 6자리로 마스킹.
+- raw CSV(`data/raw/`)는 깃·배포 제외. 재생성: data.go.kr 15083277 다운로드 → `node scripts/etl.mjs 50000`.

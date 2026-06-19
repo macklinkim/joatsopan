@@ -1,0 +1,5 @@
+data/raw
+*.png
+.playwright-mcp
+/tmp
+docs/review
