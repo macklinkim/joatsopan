@@ -55,10 +55,16 @@
 - 사전 인덱스(시군구/동/업종) — nearby·regionRank·salaryPercentile 전수스캔 제거(~96배). 동작 동일 검증.
 - 시상식 라벨 중립화(법적), MetricCard 기여배지 대비 AA.
 
+### ✅ 추가 완료 (사다리·레이트리밋·정리)
+- 위험도 사다리(같은 시군구 위/아래 위험도 회사) 회사상세 섹션.
+- /api 레이트리밋 미들웨어(인메모리) — 로컬 40/10s 동작 확인. ⚠️ **프로덕션 한계**: Vercel 다중 엣지 인스턴스로 카운터 분산 → 실효 약함. 진짜 방어는 Vercel KV/Upstash(공유 스토어) 필요(사용자 리소스).
+- 데드 /api/nearby 제거.
+
 ### ⏳ 남은 것 (다음 회차)
-1. **보안/법적(High)**: /api 레이트리밋(미들웨어 IP 토큰버킷)·OG 임의생성 남용 방어, 정정창구 안내. (robots·시상식라벨 완료)
-2. **제품 P1**: 위험도 사다리(더좋소/덜좋소, 인덱스 활용), "그때 vs 지금"(시계열 합성 고지 선행).
-3. 코드: 차트 textWidth/Tooltip 중복추출, /api/nearby 데드제거, eslint/prettier, data.ts 테스트.
+1. **레이트리밋 실효화**: Vercel KV/@upstash/ratelimit(공유 스토어) — 키 확보 시. (현재 인메모리는 best-effort)
+2. **제품 P1**: "그때 vs 지금"(시계열 합성 고지 선행 필수), 추천 2분화 고도화.
+3. 코드: 차트 textWidth/Tooltip 중복추출, eslint/prettier, data.ts(regionRank/ladder/explore) 테스트.
+4. OG 임의생성 남용 방어(레이트리밋 의존), 정정창구 안내 문구.
 3. 성능: 사전 인덱스(시군구/업종/점수)로 상세 순회 ~96배·explore 정렬 상각, 바이너리(Int32Array) parse 절감, ISR revalidate 상향.
 4. a11y 잔여: MetricCard 기여배지 대비(4.06/3.69 미달), 배지 색+텍스트 병행, skip-link, 터치타깃 44px.
 5. 코드: 차트 textWidth/Tooltip 중복추출, /api/nearby 데드제거, data.ts 테스트, eslint.
