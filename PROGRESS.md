@@ -19,13 +19,20 @@
 ### ✅ 추가 완료 (전량 적재 회차)
 - **전국 활성 552,878곳 전수 적재** — 컬럼형+인터닝(44MB), `lib/data.ts` 지연객체 방식(질의 결과만 Company화)으로 메모리 안전. 프로덕션 검증(카카오 검색 OK, /monthly 0.8s). "모든 데이터" 목표 달성.
 
-### ⏳ 남은 것 (다음 회차 우선순위)
-1. **10회+ sub agent 교차검증** (사용자 요구) — 전수 데이터 반영 후 재실행, 회귀·성능(콜드스타트 44MB)·정확성 점검. 결과 docs/review/round2-*.md.
-2. docs/review/SUMMARY.md P1: 접근성(검색 ARIA combobox, 노랑 대비, 차트 키보드 tabIndex+sr-only 테이블), vitest 점수엔진 테스트, eslint 설치.
-3. **다개월 실시계열** — 현재 1개월 스냅샷 → 합성. 추가 월 CSV 적재해 진짜 추이로.
-4. 참조 초과 기능: "그때 vs 지금" 서사, 지역 순위(OO구 N위), 공유 OG카드, 비교.
-5. 휴폐업(별이 된 좋소): status=2 200곳. 다개월로 '급감 신호' 정교화.
-6. 성능: 콜드스타트시 552k 로드/ID빌드 비용 점검, 필요시 ISR revalidate·인덱스.
+### ✅ 추가 완료 (10회 교차검증 round2 + 수정 회차)
+- docs/review/round2-01~10 (10관점 교차검증, 실측 기반).
+- 수정·배포: ETL 주소파싱(통합시/세종, 동오류 19.9% 수정·전수재생성), 노랑 텍스트 대비(riskTextColor 앰버),
+  검색 동명구분(지역 노출)+입력제한, 단정코멘트→추정톤+고지문 인접(법적), HERO_IDS/nameLc 지연화(콜드스타트),
+  시계열 turnover 정합, SearchBox abort/res.ok, NavBar 모바일, vitest 점수테스트 12종(통과).
+
+### ⏳ 남은 것 (다음 회차 — round2 잔여 P1/P2)
+1. **접근성 잔여**(round2-06): 검색 APG combobox(role/aria-activedescendant/Escape), 차트 키보드(tabIndex+화살표 or sr-only 데이터테이블). globals.css에 sr-only 추가 필요.
+2. **점수 로직 SSOT**(round2-08): score.ts ↔ scripts/etl.mjs 복붙 → lib/score.core.mjs 분리 양쪽 import.
+3. **참조 초과 기능**(round2-09): 회사상세 "그때 vs 지금" 서사, 추천 2분화+배수, 위험도 사다리, **지역 순위(OO구 N위/상위%)**, **공유 OG카드(app/og)**.
+4. 차별화: 필터검색(지역·업종·점수), 업종 비교, 연봉 백분위, 비교/즐겨찾기 → 전제로 사전 인덱스(시군구/업종/점수 버킷).
+5. 성능/배포: ISR(revalidate) 미적용, 보안헤더 전무(next.config), /api 레이트리밋, eslint/prettier 미설치, 44MB 번들 경량화(바이너리/Int32Array).
+6. **다개월 실시계열** — 추가 월 CSV 적재(현재 1개월 스냅샷+합성).
+7. id 중복(round2-04): 동일 name+bizNo+bdong 중복행 → ETL 중복제거.
 
 ### 🧭 결정·가정
 - 5만 표본은 인메모리/깃/번들 안전선(8MB JSON). 전량은 DB 필요 → Supabase가 정석(키 확보 시).
