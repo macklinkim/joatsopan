@@ -78,49 +78,40 @@ for (const [code, arr] of byInd) indMedian.set(code, median(arr));
 const allMedian = median([...byInd.values()].flatMap((a) => a));
 console.error("industries:", indMedian.size, "global median:", allMedian);
 
-// 선택: 층화표본 — 대형(검색 적중률) + 전 규모 균등표본(소형 좋소 대표성)
+// 전량 적재(기본). MAX 지정 시 가입자수 상위 N만(개발용).
 rows.sort((a, b) => b.members - a.members);
-let chosen;
-if (Number.isFinite(MAX)) {
-  const bigN = Math.min(rows.length, Math.round(MAX * 0.3)); // 상위 30%는 대형
-  const big = rows.slice(0, bigN);
-  const restCount = MAX - bigN;
-  const restPool = rows.slice(bigN);
-  const step = Math.max(1, Math.floor(restPool.length / restCount));
-  const rest = [];
-  for (let i = 0; i < restPool.length && rest.length < restCount; i += step) rest.push(restPool[i]);
-  chosen = big.concat(rest);
-} else {
-  chosen = rows;
-}
+const chosen = Number.isFinite(MAX) ? rows.slice(0, MAX) : rows;
 
-// 2패스: 점수 + 지역 파싱 + stable id
-const seen = new Set();
-function sid(name, bizNo, bdong) {
-  let h = 5381;
-  const s = name + bizNo + bdong;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-  let id = (h >>> 0).toString(36) + bizNo;
-  while (seen.has(id)) id += "x";
-  seen.add(id);
-  return id;
+// ── 인터닝 테이블(용량 절감) ─────────────────────────────────
+const indList = []; const indIxMap = new Map(); // code → idx
+function indIx(code, name) {
+  if (indIxMap.has(code)) return indIxMap.get(code);
+  const ix = indList.length;
+  indIxMap.set(code, ix);
+  indList.push([code, name, indMedian.get(code) || allMedian]);
+  return ix;
 }
+function interner() {
+  const list = []; const map = new Map();
+  return { ix: (v) => { if (map.has(v)) return map.get(v); const i = list.length; map.set(v, i); list.push(v); return i; }, list };
+}
+const sidoI = interner(), sgI = interner(), dongI = interner();
+
+// 압축 컬럼: id·indName·indCode 제거(인터닝/런타임 재계산), score만 보관(랭킹용)
 function build(list, closed) {
-  const cols = { id: [], bizNo: [], name: [], sido: [], sigungu: [], dong: [], bdong: [], indCode: [], indName: [], members: [], salary: [], turnover: [], score: [] };
+  const cols = { bizNo: [], name: [], sidoIx: [], sgIx: [], dongIx: [], bdong: [], indIx: [], members: [], salary: [], turnover: [], score: [] };
   for (const r of list) {
     const med = indMedian.get(r.indCode) || allMedian;
     const turnover = turnoverPct(r.hires, r.leaves, r.members);
     const score = riskScore(r.members, r.salary, turnover, med, closed);
     const parts = (r.jibun || "").split(/\s+/);
-    cols.id.push(sid(r.name, r.bizNo, r.bdong));
     cols.bizNo.push(r.bizNo);
     cols.name.push(r.name);
-    cols.sido.push(parts[0] || "");
-    cols.sigungu.push(parts[1] || "");
-    cols.dong.push(parts[2] || "");
+    cols.sidoIx.push(sidoI.ix(parts[0] || ""));
+    cols.sgIx.push(sgI.ix(parts[1] || ""));
+    cols.dongIx.push(dongI.ix(parts[2] || ""));
     cols.bdong.push(r.bdong);
-    cols.indCode.push(r.indCode);
-    cols.indName.push(r.indName);
+    cols.indIx.push(indIx(r.indCode, r.indName));
     cols.members.push(r.members);
     cols.salary.push(r.salary);
     cols.turnover.push(turnover);
@@ -131,11 +122,12 @@ function build(list, closed) {
 
 const cols = build(chosen, false);
 closedRows.sort((a, b) => b.members - a.members);
-const closedCols = build(closedRows.slice(0, 150), true);
+const closedCols = build(closedRows.slice(0, 200), true);
 
 const out = {
-  ym, count: cols.id.length, totalActive: rows.length,
-  indMedian: Object.fromEntries(indMedian), allMedian, cols, closed: closedCols,
+  ym, count: cols.name.length, totalActive: rows.length, allMedian,
+  ind: indList, sido: sidoI.list, sigungu: sgI.list, dong: dongI.list,
+  cols, closed: closedCols,
 };
 fs.writeFileSync(OUT, JSON.stringify(out));
-console.error("wrote", OUT, "active:", cols.id.length, "closed:", closedCols.id.length, "bytes:", fs.statSync(OUT).size);
+console.error("wrote", OUT, "active:", cols.name.length, "closed:", closedCols.name.length, "industries:", indList.length, "bytes:", fs.statSync(OUT).size);
