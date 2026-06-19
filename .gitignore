@@ -39,3 +39,6 @@ next-env.d.ts
 
 # claude code local
 .claude/
+
+# 원본 대용량 CSV (가공본 data/companies.json만 커밋)
+/data/raw/
