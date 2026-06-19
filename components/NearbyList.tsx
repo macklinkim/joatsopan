@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { NearbyResult } from "@/lib/types";
 import { won, riskColor, riskTextColor } from "@/lib/format";
 
-export default function NearbyList({ items }: { items: NearbyResult[] }) {
+export default function NearbyList({ items, baseSalary }: { items: NearbyResult[]; baseSalary?: number }) {
   if (!items.length) {
     return (
       <p className="text-sm text-on-surface-variant">
@@ -12,7 +12,9 @@ export default function NearbyList({ items }: { items: NearbyResult[] }) {
   }
   return (
     <ul className="flex flex-col divide-y divide-primary/[0.06]">
-      {items.map((c, i) => (
+      {items.map((c, i) => {
+        const mult = baseSalary && baseSalary > 0 ? c.salary / baseSalary : 0;
+        return (
         <li key={c.id}>
           <Link
             href={`/company/${c.id}`}
@@ -24,6 +26,11 @@ export default function NearbyList({ items }: { items: NearbyResult[] }) {
               <span className="truncate font-medium">{c.bizName}</span>
               <span className="tnum shrink-0 text-xs text-outline">{c.members.toLocaleString()}명</span>
             </span>
+            {mult >= 1.1 && (
+              <span className="tnum shrink-0 rounded-full bg-risk-safe/10 px-1.5 py-0.5 text-[11px] font-semibold text-risk-safe">
+                {mult.toFixed(1)}배
+              </span>
+            )}
             <span className="tnum shrink-0 text-sm font-semibold">{won(c.salary)}</span>
             <span
               className="tnum w-8 shrink-0 rounded-full py-0.5 text-center text-xs font-semibold"
@@ -33,7 +40,8 @@ export default function NearbyList({ items }: { items: NearbyResult[] }) {
             </span>
           </Link>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

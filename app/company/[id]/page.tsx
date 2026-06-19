@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, salaryPercentile, HERO_IDS } from "@/lib/data";
+import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, salaryPercentile, HERO_IDS, DATA_YM } from "@/lib/data";
+import ShareButton from "@/components/ShareButton";
 import { memberBand, turnoverLabel } from "@/lib/score";
 import { won, num, riskColor, riskTextColor } from "@/lib/format";
 import RiskGauge from "@/components/RiskGauge";
@@ -66,9 +67,12 @@ export default async function CompanyPage({
 
   return (
     <main className="mx-auto max-w-container px-5 py-8 md:px-12">
-      <Link href="/" className="text-sm text-on-surface-variant hover:text-primary">
-        ← 다시 검색
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/" className="text-sm text-on-surface-variant hover:text-primary">
+          ← 다시 검색
+        </Link>
+        <ShareButton title={`${c.biz_name} 위험도 ${c.risk_score} — 좋소판별기`} />
+      </div>
 
       {/* 헤더 */}
       <header className="mt-4 rounded-lg border border-primary/[0.08] bg-surface-white p-6 md:p-8">
@@ -85,6 +89,7 @@ export default async function CompanyPage({
             </h1>
             <p className="mt-2 text-sm text-on-surface-variant">
               {c.industry_name} · 사업자 {c.biz_no6} · {c.sido} {c.sigungu} {c.dong}
+              <span className="text-outline"> · 기준 {DATA_YM}</span>
             </p>
             <p className="mt-4 font-head text-lg font-medium" style={{ color: riskTextColor(c.risk_score) }}>
               “{c.comment}”
@@ -197,7 +202,7 @@ export default async function CompanyPage({
         <p className="mt-1 mb-4 text-sm text-on-surface-variant">
           {nearbyDesc} · 연봉 높은 순 (5인 이하 제외)
         </p>
-        <NearbyList items={nearby} />
+        <NearbyList items={nearby} baseSalary={c.cur_salary} />
       </section>
 
       <footer className="mt-10 py-6 text-center text-xs text-outline">
