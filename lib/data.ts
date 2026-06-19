@@ -298,6 +298,24 @@ export function salaryPercentile(id: string): SalaryPctile | null {
   return { rank, total, percentile: Math.max(1, Math.round((rank / total) * 100)) };
 }
 
+// ── 위험도 사다리 (같은 시군구 내 바로 위/아래 위험도 이웃) ──────
+export interface RiskLadder { sigungu: string; moreRisky: Company[]; lessRisky: Company[]; }
+export function riskLadder(id: string, n = 3): RiskLadder | null {
+  ensureIds();
+  const g = ID_MAP!.get(id);
+  if (g === undefined || g >= NA) return null;
+  const mySg = A.sgIx[g], mySido = A.sidoIx[g];
+  const group = (indexes().bySg.get(mySido + "|" + mySg) ?? []).slice();
+  if (group.length < 4) return null;
+  group.sort((a, b) => A.score[b] - A.score[a] || a - b); // 위험 높은 순, 동점은 인덱스
+  const pos = group.indexOf(g);
+  return {
+    sigungu: raw.sigungu[mySg],
+    moreRisky: group.slice(Math.max(0, pos - n), pos).map(companyAt),
+    lessRisky: group.slice(pos + 1, pos + 1 + n).map(companyAt),
+  };
+}
+
 // ── 코너 페이지 (지연 계산·캐시) ───────────────────────────────
 let _topRisk: number[] | null = null;
 export function topRiskCompanies(limit = 20): Company[] {

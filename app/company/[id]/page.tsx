@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, salaryPercentile, HERO_IDS, DATA_YM } from "@/lib/data";
+import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, salaryPercentile, riskLadder, HERO_IDS, DATA_YM } from "@/lib/data";
 import ShareButton from "@/components/ShareButton";
 import { memberBand, turnoverLabel } from "@/lib/score";
 import { won, num, riskColor, riskTextColor } from "@/lib/format";
@@ -64,6 +64,7 @@ export default async function CompanyPage({
   const medianRatioPct = Math.round((c.cur_salary / c.industry_median) * 100);
   const rrank = regionRank(id);
   const salPct = salaryPercentile(id);
+  const ladder = riskLadder(id);
 
   return (
     <main className="mx-auto max-w-container px-5 py-8 md:px-12">
@@ -195,6 +196,42 @@ export default async function CompanyPage({
           <HireLeaveChart data={stats.map((s) => ({ ym: s.ym, hires: s.hires, leaves: s.leaves }))} />
         </section>
       </div>
+
+      {/* 위험도 사다리 */}
+      {ladder && (ladder.moreRisky.length > 0 || ladder.lessRisky.length > 0) && (
+        <section className="mt-8 rounded-lg border border-primary/[0.08] bg-surface-white p-6">
+          <h2 className="font-head text-xl font-semibold">위험도 사다리</h2>
+          <p className="mt-1 mb-4 text-sm text-on-surface-variant">{ladder.sigungu} 안에서 위험도가 바로 위·아래인 회사</p>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div>
+              <p className="mb-2 text-xs font-semibold text-risk-high">↑ 더 위험한 곳</p>
+              <ul className="flex flex-col divide-y divide-primary/[0.06]">
+                {ladder.moreRisky.length ? ladder.moreRisky.map((m) => (
+                  <li key={m.id}>
+                    <Link href={`/company/${m.id}`} className="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-2 hover:bg-surface-paper/60">
+                      <span className="truncate text-sm font-medium">{m.biz_name}</span>
+                      <span className="tnum shrink-0 text-sm font-semibold" style={{ color: riskTextColor(m.risk_score) }}>{m.risk_score}</span>
+                    </Link>
+                  </li>
+                )) : <li className="py-2 text-sm text-outline">이 지역 최고 위험도입니다</li>}
+              </ul>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold text-risk-safe">↓ 덜 위험한 곳</p>
+              <ul className="flex flex-col divide-y divide-primary/[0.06]">
+                {ladder.lessRisky.length ? ladder.lessRisky.map((m) => (
+                  <li key={m.id}>
+                    <Link href={`/company/${m.id}`} className="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-2 hover:bg-surface-paper/60">
+                      <span className="truncate text-sm font-medium">{m.biz_name}</span>
+                      <span className="tnum shrink-0 text-sm font-semibold" style={{ color: riskTextColor(m.risk_score) }}>{m.risk_score}</span>
+                    </Link>
+                  </li>
+                )) : <li className="py-2 text-sm text-outline">이 지역 최저 위험도입니다</li>}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 주변 회사 추천 */}
       <section className="mt-8 rounded-lg border border-primary/[0.08] bg-surface-white p-6">
