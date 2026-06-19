@@ -22,9 +22,6 @@ export default function HomePage() {
           <span className="font-mono">카카오</span>
         </p>
       </section>
-      <footer className="w-full py-6 text-center text-xs text-outline">
-        ※ 본 결과는 공공데이터(국민연금) 기반 추정치이며 참고용입니다.
-      </footer>
     </main>
   );
 }
