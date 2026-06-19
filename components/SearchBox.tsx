@@ -80,15 +80,13 @@ export default function SearchBox() {
               <button
                 onMouseEnter={() => setActive(i)}
                 onClick={() => go(r.id)}
-                className={`flex w-full items-center justify-between px-5 py-3 text-left ${
+                className={`flex w-full items-baseline gap-2 px-5 py-3 text-left ${
                   active === i ? "bg-surface-paper" : ""
                 }`}
               >
-                <span>
-                  <span className="font-medium">{r.bizName}</span>
-                  <span className="ml-2 text-xs text-on-surface-variant">{r.industry}</span>
-                </span>
-                <span className="tnum text-xs text-outline">{r.members.toLocaleString()}명</span>
+                <span className="shrink-0 font-medium">{r.bizName}</span>
+                <span className="min-w-0 flex-1 truncate text-xs text-on-surface-variant">{r.industry}</span>
+                <span className="tnum shrink-0 text-xs text-outline">{r.members.toLocaleString()}명</span>
               </button>
             </li>
           ))}

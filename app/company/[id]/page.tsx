@@ -27,7 +27,8 @@ export default async function CompanyPage({
   const last = stats[stats.length - 1];
   const monthlyLeaveRate = last && last.members ? Math.round((last.leaves / last.members) * 1000) / 10 : 0;
 
-  const nearby: NearbyResult[] = nearbyCompanies(id, 10).map((n) => ({
+  const nearbyResult = nearbyCompanies(id, 10);
+  const nearby: NearbyResult[] = nearbyResult.items.map((n) => ({
     id: n.id,
     bizName: n.biz_name,
     salary: n.cur_salary,
@@ -35,6 +36,12 @@ export default async function CompanyPage({
     riskScore: n.risk_score,
     riskLabel: n.risk_label,
   }));
+  const nearbyDesc = {
+    dong: `${c.sigungu} ${c.dong}의 다른 회사`,
+    sigungu: `${c.sigungu}의 다른 회사`,
+    industry: `같은 업종(${c.industry_name})의 다른 회사`,
+    all: `다른 지역의 회사`,
+  }[nearbyResult.scope];
 
   const medianRatioPct = Math.round((c.cur_salary / c.industry_median) * 100);
 
@@ -133,7 +140,7 @@ export default async function CompanyPage({
       <section className="mt-8 rounded-lg border border-primary/[0.08] bg-surface-white p-6">
         <h2 className="font-head text-xl font-semibold">주변 회사 추천</h2>
         <p className="mt-1 mb-4 text-sm text-on-surface-variant">
-          {c.sigungu} {c.dong}에서 더 주는 곳 (연봉순 · 5인 이하 제외)
+          {nearbyDesc} · 연봉 높은 순 (5인 이하 제외)
         </p>
         <NearbyList items={nearby} />
       </section>

@@ -4,7 +4,8 @@ import type { NearbyResult } from "@/lib/types";
 
 export function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id") ?? "";
-  const results: NearbyResult[] = nearbyCompanies(id, 10).map((c) => ({
+  const { scope, items } = nearbyCompanies(id, 10);
+  const results: NearbyResult[] = items.map((c) => ({
     id: c.id,
     bizName: c.biz_name,
     salary: c.cur_salary,
@@ -12,5 +13,5 @@ export function GET(req: NextRequest) {
     riskScore: c.risk_score,
     riskLabel: c.risk_label,
   }));
-  return NextResponse.json({ results });
+  return NextResponse.json({ scope, results });
 }

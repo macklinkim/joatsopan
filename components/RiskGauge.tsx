@@ -49,7 +49,7 @@ export default function RiskGauge({
       >
         {score}
       </text>
-      <text x={cx} y={cy - 6} textAnchor="middle" fontSize="12" fill="#444748">
+      <text x={cx} y={cy + 18} textAnchor="middle" fontSize="12" fill="#444748">
         위험도 / 100
       </text>
     </svg>

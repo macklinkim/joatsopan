@@ -290,23 +290,32 @@ export function searchCompanies(q: string, limit = 10): Company[] {
     .slice(0, limit);
 }
 
-// 주변 회사 추천: 같은 법정동(bdong) → 부족 시 같은 시군구 폴백.
+export type NearbyScope = "dong" | "sigungu" | "industry" | "all";
+export interface NearbyResultSet {
+  scope: NearbyScope;
+  items: Company[];
+}
+
+// 주변 회사 추천: 같은 법정동(bdong) → 같은 시군구 → 같은 업종 → 전체 순으로
+// 첫 번째로 비지 않은 단계를 채택(추천이 빈손이 되지 않도록).
 // 5인 이하 제외, 휴폐업 제외, 본인 제외. 연봉 내림차순.
-export function nearbyCompanies(id: string, limit = 10): Company[] {
+export function nearbyCompanies(id: string, limit = 10): NearbyResultSet {
   const me = getCompany(id);
-  if (!me) return [];
-  const filt = (pool: Company[]) =>
-    pool.filter(
-      (c) => c.id !== me.id && c.cur_members > 5 && !c.is_closed
-    );
-  let pool = filt(COMPANIES.filter((c) => c.bdong_code === me.bdong_code));
-  if (pool.length < 3) {
-    const more = filt(
-      COMPANIES.filter(
-        (c) => c.sigungu === me.sigungu && c.bdong_code !== me.bdong_code
-      )
-    );
-    pool = [...pool, ...more];
+  if (!me) return { scope: "all", items: [] };
+  const elig = (c: Company) => c.id !== me.id && c.cur_members > 5 && !c.is_closed;
+
+  const tiers: { scope: NearbyScope; pool: Company[] }[] = [
+    { scope: "dong", pool: COMPANIES.filter((c) => c.bdong_code === me.bdong_code && elig(c)) },
+    { scope: "sigungu", pool: COMPANIES.filter((c) => c.sigungu === me.sigungu && elig(c)) },
+    { scope: "industry", pool: COMPANIES.filter((c) => c.industry_code === me.industry_code && elig(c)) },
+    { scope: "all", pool: COMPANIES.filter(elig) },
+  ];
+
+  for (const t of tiers) {
+    if (t.pool.length) {
+      const items = t.pool.slice().sort((a, b) => b.cur_salary - a.cur_salary).slice(0, limit);
+      return { scope: t.scope, items };
+    }
   }
-  return pool.sort((a, b) => b.cur_salary - a.cur_salary).slice(0, limit);
+  return { scope: "all", items: [] };
 }

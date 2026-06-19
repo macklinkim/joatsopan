@@ -16,21 +16,20 @@ export default function NearbyList({ items }: { items: NearbyResult[] }) {
         <li key={c.id}>
           <Link
             href={`/company/${c.id}`}
-            className="flex items-center justify-between gap-3 py-3 hover:bg-surface-paper/60 -mx-2 px-2 rounded"
+            className="-mx-2 flex items-center gap-3 rounded px-2 py-3 hover:bg-surface-paper/60"
           >
-            <span className="flex items-center gap-3">
-              <span className="tnum w-5 text-sm text-outline">{i + 1}</span>
-              <span className="font-medium">{c.bizName}</span>
-              <span className="tnum text-xs text-outline">{c.members.toLocaleString()}명</span>
+            <span className="tnum w-5 shrink-0 text-sm text-outline">{i + 1}</span>
+            {/* 이름은 길어도 잘리도록(truncate) + 인원은 모바일에서 아래로 */}
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2.5">
+              <span className="truncate font-medium">{c.bizName}</span>
+              <span className="tnum shrink-0 text-xs text-outline">{c.members.toLocaleString()}명</span>
             </span>
-            <span className="flex items-center gap-3">
-              <span className="tnum text-sm font-semibold">{won(c.salary)}</span>
-              <span
-                className="tnum rounded-full px-2 py-0.5 text-xs font-semibold"
-                style={{ background: `${riskColor(c.riskScore)}1a`, color: riskColor(c.riskScore) }}
-              >
-                {c.riskScore}
-              </span>
+            <span className="tnum shrink-0 text-sm font-semibold">{won(c.salary)}</span>
+            <span
+              className="tnum w-8 shrink-0 rounded-full py-0.5 text-center text-xs font-semibold"
+              style={{ background: `${riskColor(c.riskScore)}1a`, color: riskColor(c.riskScore) }}
+            >
+              {c.riskScore}
             </span>
           </Link>
         </li>

@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { ymLabel } from "@/lib/format";
+import { useChartWidth } from "./useChartWidth";
 
 interface Row {
   ym: string;
@@ -6,41 +10,121 @@ interface Row {
   leaves: number;
 }
 
+type Hover = { i: number; kind: "hire" | "leave" } | null;
+
 export default function HireLeaveChart({ data }: { data: Row[] }) {
-  const W = 640,
-    H = 220,
-    pad = { t: 16, r: 16, b: 28, l: 36 };
+  const [hover, setHover] = useState<Hover>(null);
+  const { ref, w: W } = useChartWidth(640);
+  const compact = W < 420;
+  const H = 240,
+    pad = { t: 24, r: 14, b: 32, l: 42 };
   const iw = W - pad.l - pad.r;
   const ih = H - pad.t - pad.b;
   const maxV = Math.max(1, ...data.map((d) => Math.max(d.hires, d.leaves)));
   const group = iw / data.length;
-  const bw = Math.min(10, group / 2.6);
+  const bw = Math.min(16, group * 0.36);
   const y = (v: number) => pad.t + ih - (ih * v) / maxV;
 
+  const ticks = 3;
+  const gridYs = Array.from({ length: ticks + 1 }, (_, i) => (maxV * i) / ticks);
+  const labelEvery = compact ? 4 : 3;
+
+  const set = (i: number, kind: "hire" | "leave") => setHover({ i, kind });
+
+  const active =
+    hover &&
+    (() => {
+      const d = data[hover.i];
+      const cx = pad.l + group * hover.i + group / 2;
+      const val = hover.kind === "hire" ? d.hires : d.leaves;
+      const bx = hover.kind === "hire" ? cx - bw - 1 + bw / 2 : cx + 1 + bw / 2;
+      const label = `${ymLabel(d.ym)} · ${val.toLocaleString()}명 ${hover.kind === "hire" ? "입사" : "퇴사"}`;
+      return { x: bx, y: y(val), label, color: hover.kind === "hire" ? "#2A8D5C" : "#D8362A" };
+    })();
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="입사·퇴사 흐름 차트">
-      <line x1={pad.l} y1={y(0)} x2={W - pad.r} y2={y(0)} stroke="#c4c7c7" />
-      {data.map((d, i) => {
-        const cx = pad.l + group * i + group / 2;
-        return (
-          <g key={d.ym}>
-            <rect x={cx - bw - 1} y={y(d.hires)} width={bw} height={y(0) - y(d.hires)} fill="#2A8D5C" rx="1" />
-            <rect x={cx + 1} y={y(d.leaves)} width={bw} height={y(0) - y(d.leaves)} fill="#D8362A" rx="1" />
-            {(i % 3 === 0 || i === data.length - 1) && (
-              <text x={cx} y={H - 8} textAnchor="middle" fontSize="10" fill="#747878">
-                {ymLabel(d.ym)}
-              </text>
-            )}
+    <div ref={ref} className="w-full">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="입사·퇴사 흐름 차트" onPointerLeave={() => setHover(null)}>
+        {/* y gridlines + labels */}
+        {gridYs.map((gv, i) => (
+          <g key={i}>
+            <line x1={pad.l} y1={y(gv)} x2={W - pad.r} y2={y(gv)} stroke={i === 0 ? "#c4c7c7" : "#e3e5e5"} strokeWidth="1" />
+            <text x={pad.l - 7} y={y(gv) + 4} textAnchor="end" fontSize="11" fill="#747878" className="tnum">
+              {Math.round(gv).toLocaleString()}
+            </text>
           </g>
-        );
-      })}
-      {/* legend */}
-      <g>
-        <rect x={pad.l} y={2} width="9" height="9" fill="#2A8D5C" rx="1" />
-        <text x={pad.l + 13} y={10} fontSize="10" fill="#444748">입사</text>
-        <rect x={pad.l + 44} y={2} width="9" height="9" fill="#D8362A" rx="1" />
-        <text x={pad.l + 57} y={10} fontSize="10" fill="#444748">퇴사</text>
-      </g>
-    </svg>
+        ))}
+        {data.map((d, i) => {
+          const cx = pad.l + group * i + group / 2;
+          const hoveringMonth = hover?.i === i;
+          return (
+            <g key={d.ym}>
+              {hoveringMonth && (
+                <rect x={pad.l + group * i} y={pad.t} width={group} height={ih} fill="#1A1A1A" opacity="0.04" />
+              )}
+              <rect
+                x={cx - bw - 1}
+                y={y(d.hires)}
+                width={bw}
+                height={y(0) - y(d.hires)}
+                fill="#2A8D5C"
+                rx="1.5"
+                opacity={hover && !(hoveringMonth && hover.kind === "hire") ? 0.45 : 1}
+                onPointerEnter={() => set(i, "hire")}
+                onPointerDown={() => set(i, "hire")}
+                style={{ cursor: "pointer" }}
+              />
+              <rect
+                x={cx + 1}
+                y={y(d.leaves)}
+                width={bw}
+                height={y(0) - y(d.leaves)}
+                fill="#D8362A"
+                rx="1.5"
+                opacity={hover && !(hoveringMonth && hover.kind === "leave") ? 0.45 : 1}
+                onPointerEnter={() => set(i, "leave")}
+                onPointerDown={() => set(i, "leave")}
+                style={{ cursor: "pointer" }}
+              />
+              {(i % labelEvery === 0 || (i === data.length - 1 && i % labelEvery >= 2)) && (
+                <text x={cx} y={H - 10} textAnchor="middle" fontSize="11" fill="#747878">
+                  {ymLabel(d.ym)}
+                </text>
+              )}
+            </g>
+          );
+        })}
+        {/* legend */}
+        <g>
+          <rect x={pad.l} y={5} width="10" height="10" fill="#2A8D5C" rx="1.5" />
+          <text x={pad.l + 15} y={14} fontSize="11" fill="#444748">입사</text>
+          <rect x={pad.l + 50} y={5} width="10" height="10" fill="#D8362A" rx="1.5" />
+          <text x={pad.l + 65} y={14} fontSize="11" fill="#444748">퇴사</text>
+        </g>
+        {/* 툴팁 */}
+        {active && <Tooltip x={active.x} y={active.y} label={active.label} color={active.color} W={W} />}
+      </svg>
+    </div>
+  );
+}
+
+// 한글(CJK)은 폭이 넓으므로 글자별로 가중치를 줘서 글상자 너비를 추정.
+function textWidth(s: string) {
+  return Array.from(s).reduce((w, ch) => w + (ch.charCodeAt(0) > 0x2e80 ? 13 : 7.4), 0);
+}
+
+function Tooltip({ x, y, label, color, W }: { x: number; y: number; label: string; color: string; W: number }) {
+  const w = textWidth(label) + 28;
+  const h = 26;
+  const tx = Math.max(4, Math.min(W - w - 4, x - w / 2));
+  const ty = Math.max(2, y - h - 8);
+  return (
+    <g pointerEvents="none">
+      <rect x={tx} y={ty} width={w} height={h} rx="6" fill="#1A1A1A" />
+      <circle cx={tx + 11} cy={ty + h / 2} r="4" fill={color} />
+      <text x={tx + 20} y={ty + h / 2 + 4.5} fontSize="12.5" fill="#fff" className="tnum">
+        {label}
+      </text>
+    </g>
   );
 }
