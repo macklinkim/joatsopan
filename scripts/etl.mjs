@@ -32,9 +32,9 @@ for (let i = 1; i < lines.length; i++) {
   if (!l) continue;
   const f = l.split(",");
   if (f.length !== 22) continue;
-  const key = f[C.name] + "|" + f[C.bizNo] + "|" + f[C.bdong];
-  if (seenRow.has(key)) { dup++; continue; }
-  seenRow.add(key);
+  // 완전중복(전체 22필드 동일) 행만 제거 — 6자리 마스킹 사번 탓에 별개 사업장 오삭제 방지
+  if (seenRow.has(l)) { dup++; continue; }
+  seenRow.add(l);
   const members = +f[C.members] || 0;
   const notice = +f[C.notice] || 0;
   const hires = +f[C.hires] || 0;

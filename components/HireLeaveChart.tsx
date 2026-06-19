@@ -44,7 +44,7 @@ export default function HireLeaveChart({ data }: { data: Row[] }) {
 
   return (
     <div ref={ref} className="w-full">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="입사·퇴사 흐름 차트" onPointerLeave={() => setHover(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" aria-hidden="true" onPointerLeave={() => setHover(null)}>
         {/* y gridlines + labels */}
         {gridYs.map((gv, i) => (
           <g key={i}>

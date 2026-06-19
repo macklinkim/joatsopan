@@ -18,7 +18,8 @@ function font(): Buffer {
 export default async function OgImage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const c = getCompany(id);
-  const name = c?.biz_name ?? "회사를 찾을 수 없음";
+  const rawName = c?.biz_name ?? "회사를 찾을 수 없음";
+  const name = rawName.length > 32 ? rawName.slice(0, 31) + "…" : rawName; // OG 카드 오버플로 방지
   const score = c?.risk_score ?? 0;
   const label = c?.risk_label ?? "—";
   const color = riskTextColor(score);

@@ -53,7 +53,7 @@ export default function LineChart({
 
   return (
     <div ref={ref} className="w-full">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="시계열 추이 차트" onPointerLeave={() => setHi(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" aria-hidden="true" onPointerLeave={() => setHi(null)}>
         {/* gridlines */}
         {gridYs.map((gv, i) => (
           <g key={i}>

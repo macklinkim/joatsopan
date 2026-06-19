@@ -141,13 +141,20 @@ export function getMonthlyStats(id: string): MonthlyStat[] {
 }
 
 // ── 검색: 회사명 또는 사업자번호 부분일치 (활성 전수 스캔) ──────────
+// 검색 정규화: NFC 통일 + 전각→반각 + 소문자 (macOS NFD·전각 입력 매칭 실패 방지)
+function normForSearch(s: string): string {
+  return s
+    .normalize("NFC")
+    .replace(/[！-～]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .toLowerCase();
+}
 let _nameLc: string[] | null = null; // 지연 생성(콜드스타트 절감)
 function nameLcArr(): string[] {
-  if (!_nameLc) _nameLc = A.name.map((s) => s.toLowerCase());
+  if (!_nameLc) _nameLc = A.name.map((s) => normForSearch(s));
   return _nameLc;
 }
 export function searchCompanies(q: string, limit = 10): Company[] {
-  const norm = q.trim().toLowerCase();
+  const norm = normForSearch(q.trim());
   if (!norm) return [];
   const nameLc = nameLcArr();
   const digits = norm.replace(/\D/g, "");

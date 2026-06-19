@@ -40,7 +40,6 @@ export default async function CompanyPage({
   const c = getCompany(id);
   if (!c) notFound();
 
-  try {
   const stats = getMonthlyStats(id);
   const last = stats[stats.length - 1];
   const monthlyLeaveRate = last && last.members ? Math.round((last.leaves / last.members) * 1000) / 10 : 0;
@@ -106,14 +105,16 @@ export default async function CompanyPage({
           {rrank && (() => {
             const dp = rrank.rank / rrank.total; // 1=가장 위험
             const tag = dp <= 0.1 ? "위험 상위권" : dp <= 0.34 ? "위험한 편" : dp >= 0.66 ? "안전한 편" : "중간 수준";
+            // 색은 라벨(상대순위)과 일치 — 위험할수록 빨강, 안전할수록 초록
+            const tagColor = dp <= 0.34 ? "#C92B20" : dp >= 0.66 ? "#1F7A4D" : "#8A6D00";
             return (
               <div className="flex items-center gap-3 rounded-lg border border-primary/[0.08] bg-surface-white px-5 py-4">
                 <span className="text-lg" aria-hidden>📍</span>
                 <p className="text-sm text-on-surface-variant">
                   <span className="font-semibold text-primary">{rrank.sigungu}</span>{" "}
                   <span className="tnum font-semibold text-primary">{rrank.total.toLocaleString()}곳</span> 중 위험도{" "}
-                  <span className="tnum font-semibold" style={{ color: riskTextColor(c.risk_score) }}>{rrank.rank.toLocaleString()}위</span>{" "}
-                  <span className="font-medium" style={{ color: riskTextColor(c.risk_score) }}>· {tag}</span>
+                  <span className="tnum font-semibold" style={{ color: tagColor }}>{rrank.rank.toLocaleString()}위</span>{" "}
+                  <span className="font-medium" style={{ color: tagColor }}>· {tag}</span>
                 </p>
               </div>
             );
@@ -204,10 +205,4 @@ export default async function CompanyPage({
       </footer>
     </main>
   );
-  } catch (e) {
-    const digest = (e as { digest?: string })?.digest;
-    if (typeof digest === "string" && digest.startsWith("NEXT")) throw e; // notFound 등은 그대로
-    console.error("COMPANY_RENDER_ERR id=", id, e instanceof Error ? e.stack : e);
-    throw e;
-  }
 }
