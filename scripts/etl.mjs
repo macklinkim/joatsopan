@@ -25,12 +25,16 @@ const C = { ym: 0, name: 1, bizNo: 2, status: 3, jibun: 5, bdong: 7, sidoCd: 9, 
 const rows = [];
 const closedRows = [];
 const byInd = new Map();
-let ym = "";
+const seenRow = new Set(); // 완전중복 행 제거(같은 사업장명+사업자번호+법정동)
+let ym = "", dup = 0;
 for (let i = 1; i < lines.length; i++) {
   const l = lines[i];
   if (!l) continue;
   const f = l.split(",");
   if (f.length !== 22) continue;
+  const key = f[C.name] + "|" + f[C.bizNo] + "|" + f[C.bdong];
+  if (seenRow.has(key)) { dup++; continue; }
+  seenRow.add(key);
   const members = +f[C.members] || 0;
   const notice = +f[C.notice] || 0;
   const hires = +f[C.hires] || 0;
@@ -53,7 +57,7 @@ for (let i = 1; i < lines.length; i++) {
   }
   rows.push(rec);
 }
-console.error("active rows:", rows.length, "closed rows:", closedRows.length);
+console.error("active rows:", rows.length, "closed rows:", closedRows.length, "dup removed:", dup);
 
 // 업종 중앙값
 const median = (arr) => {

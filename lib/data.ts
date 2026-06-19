@@ -255,6 +255,27 @@ export function regionRank(id: string): RegionRank | null {
   };
 }
 
+// ── 업종 내 연봉 백분위 (원본에 없는 기능) ─────────────────────
+export interface SalaryPctile { rank: number; total: number; percentile: number; }
+export function salaryPercentile(id: string): SalaryPctile | null {
+  ensureIds();
+  const g = ID_MAP!.get(id);
+  if (g === undefined || g >= NA) return null;
+  const myInd = A.indIx[g], mySal = A.salary[g];
+  if (mySal <= 0) return null;
+  let total = 0, higher = 0, tie = 0;
+  for (let j = 0; j < NA; j++) {
+    if (A.indIx[j] === myInd && A.salary[j] > 0) {
+      total++;
+      if (A.salary[j] > mySal) higher++;
+      else if (A.salary[j] === mySal && j < g) tie++;
+    }
+  }
+  if (total < 10) return null;
+  const rank = higher + tie + 1;
+  return { rank, total, percentile: Math.max(1, Math.round((rank / total) * 100)) };
+}
+
 // ── 코너 페이지 (지연 계산·캐시) ───────────────────────────────
 let _topRisk: number[] | null = null;
 export function topRiskCompanies(limit = 20): Company[] {
