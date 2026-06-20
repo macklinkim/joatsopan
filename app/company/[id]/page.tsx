@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, salaryPercentile, riskLadder, industryAvg, HERO_IDS, DATA_YM } from "@/lib/data";
 import ShareButton from "@/components/ShareButton";
+import CompareButton from "@/components/CompareButton";
 import { memberBand, turnoverLabel } from "@/lib/score";
 import { won, num, riskColor, riskTextColor } from "@/lib/format";
 import RiskGauge from "@/components/RiskGauge";
@@ -78,7 +79,10 @@ export default async function CompanyPage({
         <Link href="/" className="text-sm text-on-surface-variant hover:text-primary">
           ← 다시 검색
         </Link>
-        <ShareButton title={`${c.biz_name} 위험도 ${c.risk_score} — 좋소판별기`} />
+        <span className="flex shrink-0 gap-2">
+          <CompareButton id={c.id} name={c.biz_name} />
+          <ShareButton title={`${c.biz_name} 위험도 ${c.risk_score} — 좋소판별기`} />
+        </span>
       </div>
 
       {/* 헤더 */}
