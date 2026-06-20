@@ -298,6 +298,20 @@ export function salaryPercentile(id: string): SalaryPctile | null {
   return { rank, total, percentile: Math.max(1, Math.round((rank / total) * 100)) };
 }
 
+// ── 업종 평균 (지표 맥락용) ────────────────────────────────────
+export interface IndustryAvg { salary: number; turnover: number; members: number; count: number; }
+export function industryAvg(id: string): IndustryAvg | null {
+  ensureIds();
+  const g = ID_MAP!.get(id);
+  if (g === undefined || g >= NA) return null;
+  const group = indexes().byInd.get(A.indIx[g]) ?? [];
+  if (group.length < 5) return null;
+  let s = 0, t = 0, m = 0;
+  for (const j of group) { s += A.salary[j]; t += A.turnover[j]; m += A.members[j]; }
+  const n = group.length;
+  return { salary: Math.round(s / n), turnover: Math.round((t / n) * 10) / 10, members: Math.round(m / n), count: n };
+}
+
 // ── 위험도 사다리 (같은 시군구 내 바로 위/아래 위험도 이웃) ──────
 export interface RiskLadder { sigungu: string; moreRisky: Company[]; lessRisky: Company[]; }
 export function riskLadder(id: string, n = 3): RiskLadder | null {

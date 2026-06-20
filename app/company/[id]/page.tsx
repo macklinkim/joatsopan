@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, salaryPercentile, riskLadder, HERO_IDS, DATA_YM } from "@/lib/data";
+import { getCompany, getMonthlyStats, nearbyCompanies, regionRank, salaryPercentile, riskLadder, industryAvg, HERO_IDS, DATA_YM } from "@/lib/data";
 import ShareButton from "@/components/ShareButton";
 import { memberBand, turnoverLabel } from "@/lib/score";
 import { won, num, riskColor, riskTextColor } from "@/lib/format";
@@ -70,6 +70,7 @@ export default async function CompanyPage({
   const rrank = regionRank(id);
   const salPct = salaryPercentile(id);
   const ladder = riskLadder(id);
+  const iAvg = industryAvg(id);
 
   return (
     <main className="mx-auto max-w-container px-5 py-8 md:px-12">
@@ -149,7 +150,7 @@ export default async function CompanyPage({
         <MetricCard
           label="직원 수"
           value={`${num(c.cur_members)}명`}
-          sub={memberBand(c.cur_members)}
+          sub={iAvg ? `업종평균 ${num(iAvg.members)}명` : memberBand(c.cur_members)}
           contrib={c.contrib.members}
         />
         <MetricCard
@@ -162,7 +163,7 @@ export default async function CompanyPage({
         <MetricCard
           label="회전율"
           value={`${c.cur_turnover}%`}
-          sub={turnoverLabel(c.cur_turnover)}
+          sub={iAvg ? `업종평균 ${iAvg.turnover}%` : turnoverLabel(c.cur_turnover)}
           contrib={c.contrib.turnover}
           danger={c.contrib.turnover > 0}
         />
