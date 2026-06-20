@@ -16,7 +16,7 @@ import type { NearbyResult } from "@/lib/types";
 export function generateStaticParams() {
   return HERO_IDS.map((id) => ({ id }));
 }
-export const revalidate = 86400;
+export const revalidate = 604800; // 7일 (원본 데이터가 월간이라 잦은 재생성 불필요)
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;

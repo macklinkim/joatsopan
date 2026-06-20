@@ -36,6 +36,14 @@ describe("exploreCompanies", () => {
     const { items } = exploreCompanies({ grade: "rare" }, 10);
     for (const c of items) expect(c.risk_score).toBeLessThan(20);
   });
+  it("연봉순/직원순 정렬 + 시도 필터", () => {
+    const sal = exploreCompanies({ sort: "salary" }, 15).items;
+    for (let i = 1; i < sal.length; i++) expect(sal[i - 1].cur_salary).toBeGreaterThanOrEqual(sal[i].cur_salary);
+    const mem = exploreCompanies({ sort: "members" }, 15).items;
+    for (let i = 1; i < mem.length; i++) expect(mem[i - 1].cur_members).toBeGreaterThanOrEqual(mem[i].cur_members);
+    const seoul = exploreCompanies({ sido: "서울특별시" }, 20).items;
+    for (const c of seoul) expect(c.sido).toBe("서울특별시");
+  });
 });
 
 describe("getCompany / 상세 파생", () => {
@@ -60,12 +68,12 @@ describe("getCompany / 상세 파생", () => {
       expect(p.rank).toBeLessThanOrEqual(p.total);
     }
   });
-  it("riskLadder: 위는 더 위험, 아래는 덜 위험", () => {
+  it("riskLadder: 위는 엄격히 더 위험, 아래는 엄격히 덜 위험(동점 제외)", () => {
     const me = getCompany(id)!;
     const l = riskLadder(id);
     if (l) {
-      for (const m of l.moreRisky) expect(m.risk_score).toBeGreaterThanOrEqual(me.risk_score);
-      for (const m of l.lessRisky) expect(m.risk_score).toBeLessThanOrEqual(me.risk_score);
+      for (const m of l.moreRisky) expect(m.risk_score).toBeGreaterThan(me.risk_score);
+      for (const m of l.lessRisky) expect(m.risk_score).toBeLessThan(me.risk_score);
     }
   });
   it("nearbyCompanies: 본인 제외·유효 scope·5인 초과", () => {

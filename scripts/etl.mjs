@@ -43,7 +43,7 @@ for (let i = 1; i < lines.length; i++) {
   ym = ym || f[C.ym];
   const indCode = f[C.indCode];
   const rec = {
-    name: f[C.name], bizNo: f[C.bizNo], jibun: f[C.jibun], bdong: f[C.bdong],
+    name: f[C.name], bizNo: f[C.bizNo], jibun: f[C.jibun], bdong: f[C.bdong], sidoCd: f[C.sidoCd],
     indCode, indName: f[C.indName], members, notice, hires, leaves, salary,
   };
   if (f[C.status] !== "1") {
@@ -97,10 +97,18 @@ const SIDO_ALIAS = {
   "전라북도": "전북특별자치도",
   "제주도": "제주특별자치도",
 };
+// 법정동 광역시도 코드(2자리) → 현행 시도명 (주소 결측 시 폴백)
+const SIDO_CODE = {
+  "11": "서울특별시", "26": "부산광역시", "27": "대구광역시", "28": "인천광역시",
+  "29": "광주광역시", "30": "대전광역시", "31": "울산광역시", "36": "세종특별자치시",
+  "41": "경기도", "42": "강원특별자치도", "43": "충청북도", "44": "충청남도",
+  "45": "전북특별자치도", "46": "전라남도", "47": "경상북도", "48": "경상남도",
+  "50": "제주특별자치도", "51": "강원특별자치도", "52": "전북특별자치도",
+};
 // 지번주소 → 시도/시군구/동 (통합시: 도+OO시+OO구, 세종: 시군구 없음 대응)
-function parseRegion(addr) {
+function parseRegion(addr, sidoCd) {
   const t = (addr || "").split(/\s+/).filter(Boolean);
-  const sido = SIDO_ALIAS[t[0]] || t[0] || "";
+  const sido = SIDO_ALIAS[t[0]] || t[0] || SIDO_CODE[(sidoCd || "").trim()] || "";
   if (sido.startsWith("세종")) return [sido, "", t[1] || ""]; // 세종시: 시군구 없음
   if (t[1] && t[2] && t[1].endsWith("시") && t[2].endsWith("구"))
     return [sido, `${t[1]} ${t[2]}`, t[3] || ""]; // 통합시: 성남시 분당구 …
@@ -114,7 +122,7 @@ function build(list, closed) {
     const med = indMedian.get(r.indCode) || allMedian;
     const turnover = turnoverPct(r.hires, r.leaves, r.members);
     const score = riskScore(r.members, r.salary, turnover, med, closed);
-    const [psido, psg, pdong] = parseRegion(r.jibun);
+    const [psido, psg, pdong] = parseRegion(r.jibun, r.sidoCd);
     cols.bizNo.push(r.bizNo);
     cols.name.push(r.name);
     cols.sidoIx.push(sidoI.ix(psido));
