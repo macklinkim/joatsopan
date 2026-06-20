@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     description: desc,
     openGraph: { title, description: desc, type: "website" },
     twitter: { card: "summary_large_image", title, description: desc },
+    robots: { index: false, follow: true }, // 실명 상세는 색인 제외(직링크 색인 차단)
   };
 }
 
@@ -212,7 +213,7 @@ export default async function CompanyPage({
           <p className="mt-1 mb-4 text-sm text-on-surface-variant">{ladder.sigungu} 안에서 위험도가 바로 위·아래인 회사</p>
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
-              <p className="mb-2 text-xs font-semibold text-risk-high">↑ 더 위험한 곳</p>
+              <p className="mb-2 text-xs font-semibold text-high-strong">↑ 더 위험한 곳</p>
               <ul className="flex flex-col divide-y divide-primary/[0.06]">
                 {ladder.moreRisky.length ? ladder.moreRisky.map((m) => (
                   <li key={m.id}>
@@ -225,7 +226,7 @@ export default async function CompanyPage({
               </ul>
             </div>
             <div>
-              <p className="mb-2 text-xs font-semibold text-risk-safe">↓ 덜 위험한 곳</p>
+              <p className="mb-2 text-xs font-semibold text-safe-strong">↓ 덜 위험한 곳</p>
               <ul className="flex flex-col divide-y divide-primary/[0.06]">
                 {ladder.lessRisky.length ? ladder.lessRisky.map((m) => (
                   <li key={m.id}>
@@ -249,14 +250,14 @@ export default async function CompanyPage({
         </p>
         {better.length > 0 && (
           <div className="mb-5 rounded-lg bg-risk-safe/[0.07] p-4">
-            <p className="mb-2 text-sm font-semibold text-risk-safe">💡 갈아탈 만한 곳 — 더 주면서 덜 위험</p>
+            <p className="mb-2 text-sm font-semibold text-safe-strong">💡 갈아탈 만한 곳 — 더 주면서 덜 위험</p>
             <ul className="flex flex-col gap-1.5">
               {better.map((n) => (
                 <li key={n.id}>
                   <Link href={`/company/${n.id}`} className="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-1 hover:bg-surface-white">
                     <span className="truncate text-sm font-medium">{n.biz_name}</span>
                     <span className="flex shrink-0 items-center gap-2">
-                      <span className="tnum text-xs font-semibold text-risk-safe">{(n.cur_salary / c.cur_salary).toFixed(1)}배</span>
+                      <span className="tnum text-xs font-semibold text-safe-strong">{(n.cur_salary / c.cur_salary).toFixed(1)}배</span>
                       <span className="tnum text-sm font-semibold">{won(n.cur_salary)}</span>
                     </span>
                   </Link>
@@ -267,10 +268,6 @@ export default async function CompanyPage({
         )}
         <NearbyList items={nearby} baseSalary={c.cur_salary} />
       </section>
-
-      <footer className="mt-10 py-6 text-center text-xs text-outline">
-        ※ 본 결과는 공공데이터(국민연금) 기반 추정치이며 참고용입니다. 특정 기업 비방 목적이 아닙니다.
-      </footer>
     </main>
   );
 }

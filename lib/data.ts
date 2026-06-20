@@ -304,15 +304,20 @@ export function riskLadder(id: string, n = 3): RiskLadder | null {
   ensureIds();
   const g = ID_MAP!.get(id);
   if (g === undefined || g >= NA) return null;
-  const mySg = A.sgIx[g], mySido = A.sidoIx[g];
+  const mySg = A.sgIx[g], mySido = A.sidoIx[g], myScore = A.score[g];
   const group = (indexes().bySg.get(mySido + "|" + mySg) ?? []).slice();
   if (group.length < 4) return null;
   group.sort((a, b) => A.score[b] - A.score[a] || a - b); // 위험 높은 순, 동점은 인덱스
   const pos = group.indexOf(g);
+  // 동점(같은 점수)은 제외하고 '엄격히 더 위험/덜 위험'한 곳만 (정수 점수 군집 오표기 방지)
+  const moreRisky: number[] = [];
+  for (let k = pos - 1; k >= 0 && moreRisky.length < n; k--) if (A.score[group[k]] > myScore) moreRisky.push(group[k]);
+  const lessRisky: number[] = [];
+  for (let k = pos + 1; k < group.length && lessRisky.length < n; k++) if (A.score[group[k]] < myScore) lessRisky.push(group[k]);
   return {
     sigungu: raw.sigungu[mySg],
-    moreRisky: group.slice(Math.max(0, pos - n), pos).map(companyAt),
-    lessRisky: group.slice(pos + 1, pos + 1 + n).map(companyAt),
+    moreRisky: moreRisky.map(companyAt),
+    lessRisky: lessRisky.map(companyAt),
   };
 }
 

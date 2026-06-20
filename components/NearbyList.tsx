@@ -27,7 +27,7 @@ export default function NearbyList({ items, baseSalary }: { items: NearbyResult[
               <span className="tnum shrink-0 text-xs text-outline">{c.members.toLocaleString()}명</span>
             </span>
             {mult >= 1.1 && (
-              <span className="tnum shrink-0 rounded-full bg-risk-safe/10 px-1.5 py-0.5 text-[11px] font-semibold text-risk-safe">
+              <span className="tnum shrink-0 rounded-full bg-risk-safe/10 px-1.5 py-0.5 text-[11px] font-semibold text-safe-strong">
                 {mult.toFixed(1)}배
               </span>
             )}

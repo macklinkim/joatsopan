@@ -17,9 +17,6 @@ export default function MonthlyPage() {
           stat={(c) => ({ label: `회전율 ${c.cur_turnover}%`, danger: c.cur_turnover >= 100 })}
         />
       </section>
-      <p className="mt-6 text-center text-xs text-outline">
-        ※ 공공데이터(국민연금) 기반 추정치이며 참고용입니다. 특정 기업 비방 목적이 아닙니다.
-      </p>
     </main>
   );
 }

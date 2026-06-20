@@ -73,9 +73,6 @@ export default async function ExplorePage({
       <section className="rounded-lg border border-primary/[0.08] bg-surface-white p-5 md:p-6">
         <CompanyRankList items={items} stat={statFor(sort)} />
       </section>
-      <p className="mt-6 text-center text-xs text-outline">
-        ※ 공공데이터(국민연금) 기반 추정치이며 참고용입니다.
-      </p>
     </main>
   );
 }

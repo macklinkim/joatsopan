@@ -14,6 +14,9 @@ const config: Config = {
         "risk-high": "#D8362A",
         "risk-warning": "#FEE500",
         "risk-safe": "#2A8D5C",
+        // 텍스트/아이콘용 진한 변형 (WCAG AA 대비 확보)
+        "safe-strong": "#1F7A4D",
+        "high-strong": "#C92B20",
         // surfaces
         "surface-paper": "#F7F6F0",
         "surface-white": "#FFFFFF",
