@@ -21,7 +21,7 @@
 ### ⏳ 남은 것 (외부 리소스 또는 저우선/선택)
 1. **레이트리밋 실효화 = Vercel KV/Upstash 키 필요** (인메모리 미들웨어는 분산환경서 무력 — 실측 확인). OG 임의생성 남용 방어도 이에 의존.
 2. **"그때 vs 지금"(P1)**: 선행조건 충족했으나 시계열이 합성이라 진짜 서사는 다개월 실데이터 필요 → 보류 권장.
-3. 저우선: 빈-sido 109곳 처리, OG 중립카드화, 테스트 추가(middleware/explore정렬/ladder경계), revalidate 상향, prettier, 즐겨찾기/비교.
+3. 저우선: OG 중립카드화, middleware/ShareButton 테스트, prettier, 즐겨찾기/비교. (빈-sido·revalidate·explore/ladder 테스트는 완료)
 4. 다개월 실시계열: data.go.kr는 최신월만 제공(fileDetailSn=2=동월 JSON) → 과거월 별도 확보 시.
 
 ## 결정·가정
